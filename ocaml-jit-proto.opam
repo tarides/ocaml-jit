@@ -7,7 +7,7 @@ license: "BSD-2-Clause"
 homepage: "https://github.com/NathanReb/ocaml-jit-proto"
 bug-reports: "https://github.com/NathanReb/ocaml-jit-proto/issues"
 depends: [
-  "dune" {>= "2.7"}
+  "dune" {>= "2.8"}
   "odoc" {with-doc}
 ]
 build: [
