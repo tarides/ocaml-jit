@@ -16,11 +16,15 @@
 
 open X86_ast
 open X86_proc
-open !Import
+open! Import
 
-type section = { sec_name : string; mutable sec_instrs : asm_line array }
+type section = {
+  sec_name : string;
+  mutable sec_instrs : X86_ast_helpers.asm_line array;
+}
+[@@deriving eq, ord, show]
 
-type data_size = B8 | B16 | B32 | B64
+type data_size = B8 | B16 | B32 | B64 [@@deriving eq, ord, show]
 
 module IntSet = Set.Make (struct
   type t = int
@@ -56,6 +60,7 @@ type reloc_kind =
   | RELOC_REL32 of string * int64
   | RELOC_DIR32 of string * int64
   | RELOC_DIR64 of string * int64
+[@@deriving eq, ord, show]
 
 type symbol = {
   sy_name : string;
@@ -66,6 +71,7 @@ type symbol = {
   mutable sy_pos : int option;
   mutable sy_num : int option; (* position in .symtab *)
 }
+[@@deriving eq, ord, show]
 
 type buffer = {
   sec : section;
@@ -79,7 +85,7 @@ type local_reloc =
   | RelocCall of string
   | RelocShortJump of string * int (* loc *)
   | RelocLongJump of string
-  | RelocConstant of constant * data_size
+  | RelocConstant of X86_ast_helpers.constant * data_size
 
 type result =
   | Rint of int64
@@ -372,7 +378,8 @@ let declare_label b s =
   let pos = Buffer.length b.buf in
   sy.sy_pos <- Some pos
 
-let buf_opcodes b opcodes = List.iter ~f:(fun opcode -> buf_int8 b opcode) opcodes
+let buf_opcodes b opcodes =
+  List.iter ~f:(fun opcode -> buf_int8 b opcode) opcodes
 
 let arch64 = Config.architecture = "amd64"
 
@@ -1482,12 +1489,11 @@ let assemble_section arch section =
   local_labels := String.Map.empty;
 
   let icount = ref 0 in
-  Array.iter section.sec_instrs
-    ~f:(function
-      | NewLabel (lbl, _) ->
-          local_labels := String.Map.add ~key:lbl ~data:!icount !local_labels
-      | Ins _ -> incr icount
-      | _ -> ());
+  Array.iter section.sec_instrs ~f:(function
+    | NewLabel (lbl, _) ->
+        local_labels := String.Map.add ~key:lbl ~data:!icount !local_labels
+    | Ins _ -> incr icount
+    | _ -> ());
 
   let passes = ref 0 in
 
@@ -1544,8 +1550,8 @@ let assemble_section arch section =
           | Rabs _, _ -> assert false)
     in
 
-    List.iter !local_relocs
-      ~f:(fun (pos, local_reloc) -> do_local_reloc pos local_reloc);
+    List.iter !local_relocs ~f:(fun (pos, local_reloc) ->
+        do_local_reloc pos local_reloc);
 
     if !retry then iter_assemble () else b
   in
@@ -1560,8 +1566,7 @@ let assemble_section arch section =
 
 let contents b =
   let buf = Buffer.to_bytes b.buf in
-  List.iter b.patches
-    ~f:(fun (pos, nbits, v) ->
+  List.iter b.patches ~f:(fun (pos, nbits, v) ->
       (*    Printf.eprintf "Apply patch %s @%d\n%!" (string_of_data_size nbits) pos; *)
       match nbits with
       | B64 -> str_int64L buf pos v

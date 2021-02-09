@@ -1,2 +1,4 @@
 (library
- (name stdext))
+ (name stdext)
+ (preprocess
+  (pps ppx_deriving.std)))
