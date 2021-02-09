@@ -12,6 +12,7 @@
   * Fabrice LE FESSANT (INRIA/OCamlPro)
 *)
 
+open Import
 open X86_ast
 
 type section = { sec_name : string; mutable sec_instrs : asm_line array }
@@ -40,10 +41,10 @@ val relocations : buffer -> (int * reloc_kind) list
 
 val assemble_section : arch -> section -> buffer
 
-val get_symbol : buffer -> Misc.Stdlib.String.Map.key -> symbol
+val get_symbol : buffer -> String.Map.key -> symbol
 
 val contents : buffer -> string
 
 val add_patch : buffer -> int -> data_size -> int64 -> unit
 
-val labels : buffer -> symbol Misc.Stdlib.String.Map.t
+val labels : buffer -> symbol String.Map.t

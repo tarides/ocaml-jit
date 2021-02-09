@@ -16,7 +16,7 @@
 
 open X86_ast
 open X86_proc
-module String = Misc.Stdlib.String
+open !Import
 
 type section = { sec_name : string; mutable sec_instrs : asm_line array }
 
@@ -109,7 +109,7 @@ let get_symbol b s =
         sy_sec = b.sec;
       }
     in
-    b.labels <- String.Map.add s sy b.labels;
+    b.labels <- String.Map.add ~key:s ~data:sy b.labels;
     sy
 
 let buf_int8 b i = Buffer.add_char b.buf (char_of_int (i land 0xff))
@@ -372,7 +372,7 @@ let declare_label b s =
   let pos = Buffer.length b.buf in
   sy.sy_pos <- Some pos
 
-let buf_opcodes b opcodes = List.iter (fun opcode -> buf_int8 b opcode) opcodes
+let buf_opcodes b opcodes = List.iter ~f:(fun opcode -> buf_int8 b opcode) opcodes
 
 let arch64 = Config.architecture = "amd64"
 
@@ -1482,13 +1482,12 @@ let assemble_section arch section =
   local_labels := String.Map.empty;
 
   let icount = ref 0 in
-  Array.iter
-    (function
+  Array.iter section.sec_instrs
+    ~f:(function
       | NewLabel (lbl, _) ->
-          local_labels := String.Map.add lbl !icount !local_labels
+          local_labels := String.Map.add ~key:lbl ~data:!icount !local_labels
       | Ins _ -> incr icount
-      | _ -> ())
-    section.sec_instrs;
+      | _ -> ());
 
   let passes = ref 0 in
 
@@ -1500,7 +1499,7 @@ let assemble_section arch section =
     local_relocs := [];
 
     let loc = ref 0 in
-    Array.iter (assemble_line b loc) section.sec_instrs;
+    Array.iter ~f:(assemble_line b loc) section.sec_instrs;
 
     let retry = ref false in
 
@@ -1545,9 +1544,8 @@ let assemble_section arch section =
           | Rabs _, _ -> assert false)
     in
 
-    List.iter
-      (fun (pos, local_reloc) -> do_local_reloc pos local_reloc)
-      !local_relocs;
+    List.iter !local_relocs
+      ~f:(fun (pos, local_reloc) -> do_local_reloc pos local_reloc);
 
     if !retry then iter_assemble () else b
   in
@@ -1562,15 +1560,14 @@ let assemble_section arch section =
 
 let contents b =
   let buf = Buffer.to_bytes b.buf in
-  List.iter
-    (fun (pos, nbits, v) ->
+  List.iter b.patches
+    ~f:(fun (pos, nbits, v) ->
       (*    Printf.eprintf "Apply patch %s @%d\n%!" (string_of_data_size nbits) pos; *)
       match nbits with
       | B64 -> str_int64L buf pos v
       | B32 -> str_int32L buf pos v
       | B16 -> str_int16L buf pos v
-      | B8 -> str_int8L buf pos v)
-    b.patches;
+      | B8 -> str_int8L buf pos v);
   Bytes.to_string buf
 
 let relocations b = b.relocations
