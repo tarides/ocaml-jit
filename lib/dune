@@ -1,4 +1,4 @@
 (library
  (name jit)
- (libraries compiler-libs compiler-libs.opttoplevel)
+ (libraries compiler-libs compiler-libs.opttoplevel stdext)
  (preprocess (pps ppx_deriving.std)))

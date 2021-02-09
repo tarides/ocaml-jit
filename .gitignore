@@ -2,6 +2,4 @@
 *.install
 _build
 _opam
-TOP*.s
-TOP*.o
-TOP*.so
+TOP*.*

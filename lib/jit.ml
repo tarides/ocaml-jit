@@ -1,9 +1,22 @@
+open Import
+
 let outcome_global : Opttoploop.evaluation_outcome option ref = ref None
+
+let get_arch () =
+  match Sys.word_size with
+  | 32 -> X86_ast.X86
+  | 64 -> X86_ast.X64
+  | i -> failwithf "Unexpected word size: %d" i
 
 let jit_load_x86 ~outcome_ref:_ =
   fun asm_program _filename ->
-  Printf.printf "-------- X86 AST --------\n%!";
-  Printf.printf "%s\n%!" (X86_ast_helpers.show_asm_program asm_program)
+  let section_map = X86_section.Map.from_program asm_program in
+  let arch = get_arch () in
+  let binary_section_map =
+    String.Map.mapi section_map
+      ~f:(fun section lines -> X86_section.assemble ~arch (section, lines))
+  in
+  Debug.save_binary_sections ~phrase_name:!Opttoploop.phrase_name binary_section_map
 
 let setup_jit () =
   X86_proc.register_internal_assembler
