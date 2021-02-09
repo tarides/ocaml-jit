@@ -14,7 +14,6 @@ let write_bin_file ~filename content =
   close_out oc
 
 let save_binary_sections ~phrase_name binary_section_map =
-  String.Map.iter binary_section_map
-    ~f:(fun ~key:section_name ~data:buffer ->
-       let filename = Printf.sprintf "%s.section%s" phrase_name section_name in
-       write_bin_file ~filename (X86_emitter.contents buffer))
+  String.Map.iter binary_section_map ~f:(fun ~key:section_name ~data:buffer ->
+      let filename = Printf.sprintf "%s.section%s" phrase_name section_name in
+      write_bin_file ~filename (X86_emitter.contents buffer))
