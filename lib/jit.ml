@@ -16,7 +16,8 @@ let jit_load_x86 ~outcome_ref:_ asm_program _filename =
         X86_section.assemble ~arch (section, lines))
   in
   Debug.save_binary_sections ~phrase_name:!Opttoploop.phrase_name
-    binary_section_map
+    binary_section_map;
+  Debug.print_binary_section_map binary_section_map
 
 let setup_jit () =
   X86_proc.register_internal_assembler

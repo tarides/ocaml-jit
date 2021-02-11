@@ -20,11 +20,14 @@ let save_binary_sections ~phrase_name binary_section_map =
 
 let print_binary_section_map binary_section_map =
   Printf.printf "-------- Binary Sections ---------\n%!";
+  Printf.printf "Relocations:\n%!";
   String.Map.iter binary_section_map ~f:(fun ~key:section_name ~data:buffer ->
       Printf.printf "------ Section: %s ------\n%!" section_name;
       let relocations = X86_emitter.relocations buffer in
-      Printf.printf "Relocations:\n%s\n%!"
-        ([%show: (int * X86_emitter.reloc_kind) list] relocations);
+      Printf.printf "%s\n%!"
+        ([%show: (int * X86_emitter.reloc_kind) list] relocations));
+  Printf.printf "Labels:\n%!";
+  String.Map.iter binary_section_map ~f:(fun ~key:section_name ~data:buffer ->
+      Printf.printf "------ Section: %s ------\n%!" section_name;
       let labels = X86_emitter.labels buffer in
-      Printf.printf "Labels:\n%s\n%!"
-        ([%show: X86_emitter.symbol String.Map.t] labels))
+      Printf.printf "%s\n%!" ([%show: X86_emitter.symbol String.Map.t] labels))
