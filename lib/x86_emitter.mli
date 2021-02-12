@@ -20,13 +20,6 @@ type section = { sec_name : string; mutable sec_instrs : asm_line array }
 
 type data_size = B8 | B16 | B32 | B64 [@@deriving eq, ord, show]
 
-type reloc_kind =
-  (* 32 bits offset usually in data section *)
-  | RELOC_REL32 of string * int64
-  | RELOC_DIR32 of string * int64
-  | RELOC_DIR64 of string * int64
-[@@deriving eq, ord, show]
-
 type symbol = {
   sy_name : string;
   mutable sy_type : string option;
@@ -38,9 +31,23 @@ type symbol = {
 }
 [@@deriving eq, ord, show]
 
+module Relocation : sig
+  module Kind : sig
+    type t =
+      (* 32 bits offset usually in data section *)
+      | REL32 of string * int64
+      | DIR32 of string * int64
+      | DIR64 of string * int64
+    [@@deriving eq, ord, show]
+  end
+
+  type t = { offset_to_section_beginning : int; kind : Kind.t }
+  [@@deriving eq, ord, show]
+end
+
 type buffer
 
-val relocations : buffer -> (int * reloc_kind) list
+val relocations : buffer -> Relocation.t list
 
 val assemble_section : arch -> section -> buffer
 

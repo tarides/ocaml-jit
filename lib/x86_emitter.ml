@@ -55,19 +55,26 @@ instruction, but the 64-bit version...
 
 *)
 
-type reloc_kind =
-  (* 32 bits offset usually in data section *)
-  | RELOC_REL32 of string * int64
-  | RELOC_DIR32 of string * int64
-  | RELOC_DIR64 of string * int64
-[@@deriving eq, ord, show]
+module Relocation = struct
+  module Kind = struct
+    type t =
+      (* 32 bits offset usually in data section *)
+      | REL32 of string * int64
+      | DIR32 of string * int64
+      | DIR64 of string * int64
+    [@@deriving eq, ord, show]
+  end
+
+  type t = { offset_to_section_beginning : int; kind : Kind.t }
+  [@@deriving eq, ord, show]
+end
 
 type symbol = {
   sy_name : string;
   mutable sy_type : string option;
   mutable sy_size : int option;
   mutable sy_global : bool;
-  mutable sy_sec : section;
+  mutable sy_sec : section; [@printer fun fmt _ -> Format.fprintf fmt "..."]
   mutable sy_pos : int option;
   mutable sy_num : int option; (* position in .symtab *)
 }
@@ -78,7 +85,7 @@ type buffer = {
   buf : Buffer.t;
   mutable labels : symbol String.Map.t;
   mutable patches : (int * data_size * int64) list;
-  mutable relocations : (int * reloc_kind) list;
+  mutable relocations : Relocation.t list;
 }
 
 type local_reloc =
@@ -370,7 +377,9 @@ let sib scale index base =
   in
   (scale lsl 6) lor (reg7 index lsl 3) lor reg7 base
 
-let record_reloc b pos kind = b.relocations <- (pos, kind) :: b.relocations
+let record_reloc b offset_to_section_beginning kind =
+  b.relocations <-
+    { Relocation.offset_to_section_beginning; kind } :: b.relocations
 
 let declare_label b s =
   let sy = get_symbol b s in
@@ -391,18 +400,18 @@ let buf_int32_imm b = function
       assert (is_imm32L n);
       buf_int32L b n
   | Sym symbol ->
-      record_reloc b (Buffer.length b.buf) (RELOC_DIR32 (symbol, 0L));
+      record_reloc b (Buffer.length b.buf) (Relocation.Kind.DIR32 (symbol, 0L));
       buf_int32L b 0L
   | _ -> assert false
 
 type offset_exp = OImm8 of int64 | OImm32 of string option * int64
 
 let sym32 b sym =
-  record_reloc b (Buffer.length b.buf) (RELOC_DIR32 (sym, 0L));
+  record_reloc b (Buffer.length b.buf) (Relocation.Kind.DIR32 (sym, 0L));
   buf_int32L b 0L
 
 let sym64 b sym =
-  record_reloc b (Buffer.length b.buf) (RELOC_DIR64 (sym, 0L));
+  record_reloc b (Buffer.length b.buf) (Relocation.Kind.DIR64 (sym, 0L));
   buf_int64L b 0L
 
 let buf_sym b sym offset =
@@ -410,7 +419,7 @@ let buf_sym b sym offset =
   | None -> buf_int32L b offset
   | Some lbl ->
       (* TODO: assert we are in 32 bits ? *)
-      record_reloc b (Buffer.length b.buf) (RELOC_DIR32 (lbl, offset));
+      record_reloc b (Buffer.length b.buf) (Relocation.Kind.DIR32 (lbl, offset));
       buf_int32L b 0L
 
 let emit_mod_rm_reg b rex opcodes rm reg =
@@ -446,7 +455,7 @@ let emit_mod_rm_reg b rex opcodes rm reg =
       buf_opcodes b opcodes;
       buf_int8 b (mod_rm_reg 0b00 0b101 reg);
       record_reloc b (Buffer.length b.buf)
-        (RELOC_REL32 (symbol, Int64.of_int offset));
+        (Relocation.Kind.REL32 (symbol, Int64.of_int offset));
       buf_int32L b 0L
   | Mem { arch; typ = _; idx; scale; base; sym; displ } -> (
       let offset =
@@ -1019,7 +1028,7 @@ let emit_reloc_jump near_opcodes far_opcodes b loc symbol =
 
     (*    Printf.printf "%s/%i: non local\n%!" symbol loc; *)
     buf_opcodes b far_opcodes;
-    record_reloc b (Buffer.length b.buf) (RELOC_REL32 (symbol, 0L));
+    record_reloc b (Buffer.length b.buf) (Relocation.Kind.REL32 (symbol, 0L));
     buf_int32L b 0L)
 
 let emit_jmp b loc dst =
@@ -1039,7 +1048,8 @@ let emit_call b dst =
         record_local_reloc b (RelocCall symbol)
       else
         (* external symbol, must reloc *)
-        record_reloc b (Buffer.length b.buf) (RELOC_REL32 (symbol, 0L));
+        record_reloc b (Buffer.length b.buf)
+          (Relocation.Kind.REL32 (symbol, 0L));
       buf_int32L b 0L
   | (Reg64 _ | Reg32 _ | Mem _ | Mem64_RIP _) as rm ->
       emit_mod_rm_reg b no_rex [ 0xFF ] rm 2
@@ -1538,14 +1548,15 @@ let assemble_section arch section =
           match (v, data_size) with
           | Rint n, _ -> add_patch b pos data_size n
           | Rabs (lbl, offset), B32 ->
-              record_reloc b pos (RELOC_DIR32 (lbl, offset))
+              record_reloc b pos (Relocation.Kind.DIR32 (lbl, offset))
           | Rabs (lbl, offset), B64 ->
-              record_reloc b pos (RELOC_DIR64 (lbl, offset))
+              record_reloc b pos (Relocation.Kind.DIR64 (lbl, offset))
           (* Relative relocation in data segment. We add an offset of 4 because
               REL32 relocations are computed with a PC at the end, while here, it
               is at the beginning. *)
           | Rrel (lbl, offset), B32 ->
-              record_reloc b pos (RELOC_REL32 (lbl, Int64.add offset 4L))
+              record_reloc b pos
+                (Relocation.Kind.REL32 (lbl, Int64.add offset 4L))
           | Rrel _, _ -> assert false
           | Rabs _, _ -> assert false)
     in

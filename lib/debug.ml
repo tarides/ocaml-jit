@@ -25,7 +25,7 @@ let print_binary_section_map binary_section_map =
       Printf.printf "------ Section: %s ------\n%!" section_name;
       let relocations = X86_emitter.relocations buffer in
       Printf.printf "%s\n%!"
-        ([%show: (int * X86_emitter.reloc_kind) list] relocations));
+        ([%show: X86_emitter.Relocation.t list] relocations));
   Printf.printf "Labels:\n%!";
   String.Map.iter binary_section_map ~f:(fun ~key:section_name ~data:buffer ->
       Printf.printf "------ Section: %s ------\n%!" section_name;
