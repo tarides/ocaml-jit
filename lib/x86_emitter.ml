@@ -65,7 +65,7 @@ module Relocation = struct
     [@@deriving eq, ord, show]
   end
 
-  type t = { offset_to_section_beginning : int; kind : Kind.t }
+  type t = { offset_from_section_beginning : int; kind : Kind.t }
   [@@deriving eq, ord, show]
 end
 
@@ -377,9 +377,9 @@ let sib scale index base =
   in
   (scale lsl 6) lor (reg7 index lsl 3) lor reg7 base
 
-let record_reloc b offset_to_section_beginning kind =
+let record_reloc b offset_from_section_beginning kind =
   b.relocations <-
-    { Relocation.offset_to_section_beginning; kind } :: b.relocations
+    { Relocation.offset_from_section_beginning; kind } :: b.relocations
 
 let declare_label b s =
   let sy = get_symbol b s in
@@ -1574,6 +1574,10 @@ let assemble_section arch section =
    labels should be replaced by a relative computation. The goal is to make
    all computations either absolute, or relative to the current offset.
 *)
+
+let size b = Buffer.length b.buf
+
+let add_patch ~offset ~size ~data t = add_patch t offset size data
 
 let contents b =
   let buf = Buffer.to_bytes b.buf in

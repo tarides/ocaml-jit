@@ -41,11 +41,13 @@ module Relocation : sig
     [@@deriving eq, ord, show]
   end
 
-  type t = { offset_to_section_beginning : int; kind : Kind.t }
+  type t = { offset_from_section_beginning : int; kind : Kind.t }
   [@@deriving eq, ord, show]
 end
 
 type buffer
+
+val size : buffer -> int
 
 val relocations : buffer -> Relocation.t list
 
@@ -55,6 +57,6 @@ val get_symbol : buffer -> String.Map.key -> symbol
 
 val contents : buffer -> string
 
-val add_patch : buffer -> int -> data_size -> int64 -> unit
+val add_patch : offset:int -> size:data_size -> data:int64 -> buffer -> unit
 
 val labels : buffer -> symbol String.Map.t

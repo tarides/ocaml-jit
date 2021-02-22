@@ -6,10 +6,12 @@ let name s_l s_opt s_l' =
   let last = match s_l' with [] -> "" | l -> "," ^ String.concat ~sep:"," l in
   first ^ mid ^ last
 
-type t = string * X86_ast.asm_line list
+type t = { name : string; instructions : X86_ast.asm_line list }
 
-let assemble ~arch (sec_name, instrs) =
-  let section = { X86_emitter.sec_name; sec_instrs = Array.of_list instrs } in
+let assemble ~arch { name; instructions } =
+  let section =
+    { X86_emitter.sec_name = name; sec_instrs = Array.of_list instructions }
+  in
   X86_emitter.assemble_section arch section
 
 module Map = struct

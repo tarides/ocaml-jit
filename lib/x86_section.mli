@@ -1,6 +1,6 @@
 open Import
 
-type t = string * X86_ast.asm_line list
+type t = { name : string; instructions : X86_ast.asm_line list }
 
 val assemble : arch:X86_ast.arch -> t -> X86_emitter.buffer
 
