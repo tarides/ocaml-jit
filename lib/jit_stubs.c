@@ -49,7 +49,7 @@ CAMLprim value jit_mprotect_ro(value caml_addr, value caml_size) {
   int size;
 
   size = Int_val(caml_size);
-  addr = (intnat*) Nativeint_val(addr);
+  addr = (intnat*) Nativeint_val(caml_addr);
 
   if (mprotect(addr, size, PROT_READ)) {
     result = caml_alloc(1, 1);
@@ -70,7 +70,7 @@ CAMLprim value jit_mprotect_rx(value caml_addr, value caml_size) {
   int size;
 
   size = Int_val(caml_size);
-  addr = (intnat*) Nativeint_val(addr);
+  addr = (intnat*) Nativeint_val(caml_addr);
 
   if (mprotect(addr, size, PROT_READ | PROT_EXEC)) {
     result = caml_alloc(1, 1);
