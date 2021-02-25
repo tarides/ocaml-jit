@@ -53,12 +53,15 @@ let one ~symbol_map ~got ~plt ~section_name binary_section t =
     match t.kind with
     | Absolute -> Address.to_int64 target_address
     | Relative ->
-        let reloc_address =
-          Address.add_int binary_section.address t.offset_from_section_beginning
+        let src_address =
+          (* The offset is taken form the beginning of the next instruction, where
+             the program counter  is at, that is the address of the relocation + its size .*)
+          let offset = t.offset_from_section_beginning + Size.to_int t.size in
+          Address.add_int binary_section.address offset
         in
         Int64.sub
-          (Address.to_int64 reloc_address)
           (Address.to_int64 target_address)
+          (Address.to_int64 src_address)
   in
   let size = Size.to_data_size t.size in
   X86_emitter.add_patch ~offset:t.offset_from_section_beginning ~size ~data

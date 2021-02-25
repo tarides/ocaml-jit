@@ -3,3 +3,5 @@ include module type of struct
 end
 
 module Map : Map.S with type key = string
+
+val starts_with : prefix:string -> string -> bool

@@ -4,6 +4,8 @@ type need_reloc = Bin_table.empty
 
 type relocated = Bin_table.filled
 
+let name = ".text"
+
 type 'a t = {
   binary_section : X86_emitter.buffer;
   got : 'a Jit_got.t;
@@ -39,3 +41,10 @@ let relocate ~symbol_map (t : need_reloc t addressed) =
   { t with value }
 
 let content t = X86_emitter.contents t.binary_section ^ Jit_got.content t.got
+
+let symbol_map { address; value = t } =
+  let raw_symbol_map = X86_emitter.labels t.binary_section in
+  String.Map.map raw_symbol_map ~f:(fun symbol ->
+      match symbol.X86_emitter.sy_pos with
+      | None -> failwithf "Symbol %s has no offset" symbol.X86_emitter.sy_name
+      | Some offset -> Address.add_int address offset)

@@ -20,6 +20,8 @@ module Size = struct
   type t = S64 | S32
 
   let to_data_size = function S64 -> X86_emitter.B64 | S32 -> X86_emitter.B32
+
+  let to_int = function S32 -> 4 | S64 -> 8
 end
 
 module Kind = struct

@@ -6,6 +6,9 @@ type relocated
 
 type _ t
 
+val name : string
+(** Name of the text section: [".text"] *)
+
 val from_binary_section : X86_emitter.buffer -> need_reloc t
 (** Creates a text section with empty GOT and PLT. These will be filled
     along with relocations applied by [relocate].
@@ -24,3 +27,7 @@ val relocate :
 
 val content : relocated t -> string
 (** Return the text section along with the GOT and PLT tables, in binary form as a string *)
+
+val symbol_map : _ t addressed -> Address.t String.Map.t
+(** Return a mapping from symbols to absolute address for the symbols defined in the given
+    text section. *)

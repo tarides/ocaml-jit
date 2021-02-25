@@ -10,6 +10,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
 CAMLprim value jit_memalign(value section_size) {
   CAMLparam1 (section_size);
@@ -18,7 +19,7 @@ CAMLprim value jit_memalign(value section_size) {
   int res, size;
 
   size = Int_val(section_size);
-  res = posix_memalign(&addr, 16, section_size);
+  res = posix_memalign(&addr, getpagesize(), section_size);
   if (res) {
     result = caml_alloc(1, 1);
     Store_field(result, 0, Val_int(res));
@@ -144,4 +145,13 @@ CAMLprim value jit_run_toplevel(value symbols_addresses) {
   Store_field(res, 0, v);
 
   CAMLreturn(res);
+}
+
+CAMLprim value jit_addr_to_obj(value address) {
+  CAMLparam1 (address);
+  CAMLlocal1 (obj);
+
+  obj = (value) ((intnat*) Nativeint_val(address));
+
+  CAMLreturn(obj);
 }
