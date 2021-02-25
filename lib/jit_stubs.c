@@ -31,7 +31,7 @@ CAMLprim value jit_memalign(value section_size) {
   CAMLreturn(result);
 }
 
-CAMLprim void jit_load_section(value addr, value section, value section_size) {
+CAMLprim value jit_load_section(value addr, value section, value section_size) {
   CAMLparam3 (addr, section, section_size);
   int size = Int_val(section_size);
   const char *src = String_val(section);
@@ -39,7 +39,7 @@ CAMLprim void jit_load_section(value addr, value section, value section_size) {
 
   memcpy(dest, src, size);
 
-  CAMLreturn0;
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value jit_mprotect_ro(value caml_addr, value caml_size) {
