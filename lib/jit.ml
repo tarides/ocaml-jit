@@ -163,6 +163,11 @@ let jit_load_x86 ~outcome_ref:_ asm_program _filename =
   let result = jit_run entry_points in
   outcome_global := Some result
 
+let set_debug () =
+  match Sys.getenv_opt "OCAML_JIT_DEBUG" with
+  | Some ("true" | "1") -> Globals.debug := true
+  | None | Some _ -> Globals.debug := false
+
 let setup_jit () =
   X86_proc.register_internal_assembler
     (jit_load_x86 ~outcome_ref:outcome_global)
@@ -193,6 +198,7 @@ let jit_lookup_symbol symbol =
   | Some x -> Some (Address.to_obj x)
 
 let init_top () =
+  set_debug ();
   setup_jit ();
   Opttoploop.register_jit
     { Opttoploop.Jit.load = jit_load; lookup_symbol = jit_lookup_symbol }

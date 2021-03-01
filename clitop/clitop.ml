@@ -18,7 +18,7 @@ let input =
   in
   named
     (fun x -> `Input x)
-    Cmdliner.Arg.(required & pos 0 (some input) None & info ~doc ~docv [])
+    Cmdliner.Arg.(value & pos 0 (some input) None & info ~doc ~docv [])
 
 let keep_asm_files =
   let doc =
@@ -29,8 +29,7 @@ let keep_asm_files =
     (fun x -> `Keep_asm_files x)
     Cmdliner.Arg.(value & flag & info ~doc [ "k"; "keep-asm-files" ])
 
-let run ~eval_phrase (`Keep_asm_files keep_asm_files) (`Input input) =
-  Clflags.keep_asm_file := keep_asm_files;
+let eval_one ~eval_phrase input =
   let phrase =
     match input with
     | Stdin ->
@@ -44,15 +43,21 @@ let run ~eval_phrase (`Keep_asm_files keep_asm_files) (`Input input) =
   let _ = eval_phrase true Format.std_formatter phrase in
   ()
 
-let term ~eval_phrase =
-  Cmdliner.Term.(const (run ~eval_phrase) $ keep_asm_files $ input)
+let run ~eval_phrase ~loop (`Keep_asm_files keep_asm_files) (`Input input) =
+  Clflags.keep_asm_file := keep_asm_files;
+  match input with
+  | None -> loop Format.std_formatter
+  | Some input -> eval_one ~eval_phrase input
+
+let term ~eval_phrase ~loop =
+  Cmdliner.Term.(const (run ~eval_phrase ~loop) $ keep_asm_files $ input)
 
 let info ~name =
   let doc = "Run the given OCaml toplevel phrase" in
   Cmdliner.Term.info ~doc name
 
-let main ~name ~eval_phrase () =
-  let term = term ~eval_phrase in
+let main ~name ~eval_phrase ~loop () =
+  let term = term ~eval_phrase ~loop in
   let info = info ~name in
   let ret = Cmdliner.Term.eval (term, info) in
   Cmdliner.Term.exit ret

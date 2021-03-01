@@ -35,4 +35,4 @@ let () =
   Opttoploop.initialize_toplevel_env ();
   Opttoploop.register_jit
     { load = keep_asm_files_load; lookup_symbol = Opttoploop.default_lookup };
-  Clitop.main ~name:"nattop" ~eval_phrase:Opttoploop.execute_phrase ()
+  Clitop.main ~name:"nattop" ~eval_phrase:Opttoploop.execute_phrase ~loop:Opttoploop.loop ()
