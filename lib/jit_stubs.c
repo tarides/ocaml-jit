@@ -12,14 +12,23 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+CAMLprim value jit_get_page_size(value unit) {
+  CAMLparam1(unit);
+  CAMLlocal1(result);
+
+  result = Val_long(getpagesize());
+
+  CAMLreturn(result);
+}
+
 CAMLprim value jit_memalign(value section_size) {
   CAMLparam1 (section_size);
   CAMLlocal1 (result);
   void *addr = NULL;
-  int res, size;
+  long res, size;
 
-  size = Int_val(section_size);
-  res = posix_memalign(&addr, getpagesize(), section_size);
+  size = Long_val(section_size);
+  res = posix_memalign(&addr, getpagesize(), size);
   if (res) {
     result = caml_alloc(1, 1);
     Store_field(result, 0, Val_int(res));

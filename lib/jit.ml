@@ -17,8 +17,16 @@ let extract_text_section binary_section_map =
       let binary_section_map = String.Map.remove name binary_section_map in
       (binary_section_map, text)
 
+let pagesize = Externals.get_page_size ()
+
+let round_to_pages section_size =
+  if section_size = 0 then 0
+  else
+    let pages = ((section_size - 1) * pagesize) + 1 in
+    pages * pagesize
+
 let alloc_memory binary_section =
-  let size = X86_emitter.size binary_section in
+  let size = round_to_pages (X86_emitter.size binary_section) in
   match Externals.memalign size with
   | Ok address -> address
   | Error code -> failwithf "posix_memalign failed with code %d" code
@@ -29,7 +37,7 @@ let alloc_all binary_section_map =
       { address; value = binary_section })
 
 let alloc_text jit_text_section =
-  let size = Jit_text_section.in_memory_size jit_text_section in
+  let size = round_to_pages (Jit_text_section.in_memory_size jit_text_section) in
   match Externals.memalign size with
   | Ok address -> { address; value = jit_text_section }
   | Error code -> failwithf "posix_memalign failed with code %d" code
@@ -148,8 +156,9 @@ let jit_load_x86 ~outcome_ref:_ asm_program _filename =
   let addressed_text = alloc_text text in
   let other_sections_symbols = local_symbol_map addressed_sections in
   let text_section_symbols = Jit_text_section.symbol_map addressed_text in
-  let symbol_map = symbols_union other_sections_symbols text_section_symbols in
-  Globals.symbol_map := symbols_union !Globals.symbol_map symbol_map;
+  let local_symbol_map = symbols_union other_sections_symbols text_section_symbols in
+  let symbol_map = symbols_union !Globals.symbol_map local_symbol_map in
+  Globals.symbol_map := symbol_map;
   let relocated_text = relocate_text ~symbol_map addressed_text in
   relocate_other ~symbol_map addressed_sections;
   Debug.save_binary_sections ~phrase_name:!Opttoploop.phrase_name
