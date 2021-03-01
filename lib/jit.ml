@@ -48,10 +48,11 @@ let symbols_union symbol_map symbol_map' =
 
 let symbol_map { address; value = binary_section } =
   let symbol_map = X86_emitter.labels binary_section in
-  String.Map.map symbol_map ~f:(fun symbol ->
-      match symbol.X86_emitter.sy_pos with
-      | None -> failwithf "Symbol %s has no offset" symbol.X86_emitter.sy_name
-      | Some offset -> Address.add_int address offset)
+  String.Map.filter_map symbol_map ~f:(fun name symbol ->
+      match symbol.X86_emitter.sy_pos, name with
+      | None, _ -> failwithf "Symbol %s has no offset" name
+      | Some _, ("caml_absf_mask" | "caml_negf_mask") -> None
+      | Some offset, _ -> Some (Address.add_int address offset))
 
 let local_symbol_map binary_section_map =
   String.Map.fold binary_section_map ~init:String.Map.empty
