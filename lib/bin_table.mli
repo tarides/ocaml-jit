@@ -13,7 +13,7 @@ module type S = sig
       relocations in the given section. You need to use [fill] to write the actual
       addresses of the pointed symbols. *)
 
-  val fill : Address.t String.Map.t -> empty t -> filled t
+  val fill : Symbols.t -> empty t -> filled t
   (** Fills the table with the absolute addresses of the symbols it holds *)
 
   val in_memory_size : _ t -> int

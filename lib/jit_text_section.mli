@@ -19,7 +19,7 @@ val in_memory_size : _ t -> int
 (** Returns the size (in bytes) the section + GOT and PLT will take up in the memory *)
 
 val relocate :
-  symbol_map:Address.t String.Map.t ->
+  symbols:Symbols.t ->
   need_reloc t addressed ->
   (relocated t addressed, string list) result
 (** Apply relocations to the following section and fills the GOT and PLT.
@@ -28,6 +28,6 @@ val relocate :
 val content : relocated t -> string
 (** Return the text section along with the GOT and PLT tables, in binary form as a string *)
 
-val symbol_map : _ t addressed -> Address.t String.Map.t
+val symbols : _ t addressed -> Symbols.t
 (** Return a mapping from symbols to absolute address for the symbols defined in the given
     text section. *)

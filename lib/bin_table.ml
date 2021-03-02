@@ -13,7 +13,7 @@ module type S = sig
       relocations in the given section. You need to use [fill] to write the actual
       addresses of the pointed symbols. *)
 
-  val fill : Address.t String.Map.t -> empty t -> filled t
+  val fill : Symbols.t -> empty t -> filled t
   (** Fills the table with the absolute addresses of the symbols it holds *)
 
   val in_memory_size : _ t -> int
@@ -56,14 +56,15 @@ module Make (X : IN) : S = struct
 
   let in_memory_size t = String.Map.cardinal t.index_map * X.entry_size
 
-  let fill symbols_map t =
+  let fill symbols t =
     let size = String.Map.cardinal t.index_map in
     let content = Array.make size Address.placeholder in
-    String.Map.iter t.index_map ~f:(fun ~key:symbol ~data:index ->
-        match String.Map.find_opt symbol symbols_map with
+    String.Map.iter t.index_map ~f:(fun ~key:symbol_name ~data:index ->
+        match Symbols.find symbols symbol_name with
         | Some addr -> content.(index) <- addr
         | None ->
-            failwithf "Symbol %s refered to by the %s is unknown" symbol X.name);
+            failwithf "Symbol %s refered to by the %s is unknown" symbol_name
+              X.name);
     { t with content }
 
   let content t =

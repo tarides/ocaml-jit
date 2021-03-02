@@ -44,36 +44,24 @@ let alloc_text jit_text_section =
   | Ok address -> { address; value = jit_text_section }
   | Error code -> failwithf "posix_memalign failed with code %d" code
 
-let symbols_union symbol_map symbol_map' =
-  String.Map.union symbol_map symbol_map' ~f:(fun symbol_name _ _ ->
-      failwithf "Symbol %s defined in several sections" symbol_name)
-
-let symbol_map { address; value = binary_section } =
-  let symbol_map = X86_emitter.labels binary_section in
-  String.Map.filter_map symbol_map ~f:(fun name symbol ->
-      match (symbol.X86_emitter.sy_pos, name) with
-      | None, _ -> failwithf "Symbol %s has no offset" name
-      | Some _, ("caml_absf_mask" | "caml_negf_mask") -> None
-      | Some offset, _ -> Some (Address.add_int address offset))
-
 let local_symbol_map binary_section_map =
-  String.Map.fold binary_section_map ~init:String.Map.empty
+  String.Map.fold binary_section_map ~init:Symbols.empty
     ~f:(fun ~key:_ ~data all_symbols ->
-      let section_symbols = symbol_map data in
-      symbols_union section_symbols all_symbols)
+      let section_symbols = Symbols.from_binary_section data in
+      Symbols.union section_symbols all_symbols)
 
-let relocate_text ~symbol_map text_section =
-  match Jit_text_section.relocate ~symbol_map text_section with
+let relocate_text ~symbols text_section =
+  match Jit_text_section.relocate ~symbols text_section with
   | Ok text -> text
   | Error msgs ->
       failwithf "Failed to apply relocations to section %s properly:\n - %s"
         Jit_text_section.name
         (String.concat ~sep:"\n- " msgs)
 
-let relocate_other ~symbol_map addressed_sections =
+let relocate_other ~symbols addressed_sections =
   String.Map.iter addressed_sections
     ~f:(fun ~key:section_name ~data:binary_section ->
-      match Relocate.all ~symbol_map ~section_name binary_section with
+      match Relocate.all ~symbols ~section_name binary_section with
       | Ok () -> ()
       | Error msgs ->
           failwithf "Failed to apply relocations to section %s properly:\n - %s"
@@ -104,9 +92,9 @@ let load_sections addressed_sections =
       if is_ro name then
         set_protection ~mprotect:Externals.mprotect_ro ~name address size)
 
-let entry_points ~phrase_name symbol_map =
+let entry_points ~phrase_name symbols =
   let symbol_name name = Printf.sprintf "caml%s__%s" phrase_name name in
-  let find_symbol name = String.Map.find_opt (symbol_name name) symbol_map in
+  let find_symbol name = Symbols.find symbols (symbol_name name) in
   let frametable = find_symbol "frametable" in
   let gc_roots = find_symbol "gc_roots" in
   let data_begin = find_symbol "data_begin" in
@@ -114,7 +102,7 @@ let entry_points ~phrase_name symbol_map =
   let code_begin = find_symbol "code_begin" in
   let code_end = find_symbol "code_end" in
   let entry_name = symbol_name "entry" in
-  match String.Map.find_opt entry_name symbol_map with
+  match Symbols.find symbols entry_name with
   | Some entry ->
       let open Jit_unit.Entry_points in
       {
@@ -158,21 +146,21 @@ let jit_load_x86 ~outcome_ref:_ asm_program _filename =
   let addressed_sections = alloc_all other_sections in
   let addressed_text = alloc_text text in
   let other_sections_symbols = local_symbol_map addressed_sections in
-  let text_section_symbols = Jit_text_section.symbol_map addressed_text in
-  let local_symbol_map =
-    symbols_union other_sections_symbols text_section_symbols
+  let text_section_symbols = Jit_text_section.symbols addressed_text in
+  let local_symbols =
+    Symbols.union other_sections_symbols text_section_symbols
   in
-  let symbol_map = symbols_union !Globals.symbol_map local_symbol_map in
-  Globals.symbol_map := symbol_map;
-  let relocated_text = relocate_text ~symbol_map addressed_text in
-  relocate_other ~symbol_map addressed_sections;
+  let symbols = Symbols.union !Globals.symbols local_symbols in
+  Globals.symbols := symbols;
+  let relocated_text = relocate_text ~symbols addressed_text in
+  relocate_other ~symbols addressed_sections;
   Debug.save_binary_sections ~phrase_name:!Opttoploop.phrase_name
     addressed_sections;
   Debug.save_text_section ~phrase_name:!Opttoploop.phrase_name relocated_text;
   load_text relocated_text;
   load_sections addressed_sections;
   let entry_points =
-    entry_points ~phrase_name:!Opttoploop.phrase_name symbol_map
+    entry_points ~phrase_name:!Opttoploop.phrase_name symbols
   in
   let result = jit_run entry_points in
   outcome_global := Some result
@@ -207,7 +195,7 @@ let jit_load ppf program =
       res
 
 let jit_lookup_symbol symbol =
-  match String.Map.find_opt symbol !Globals.symbol_map with
+  match Symbols.find !Globals.symbols symbol with
   | None -> Opttoploop.default_lookup symbol
   | Some x -> Some (Address.to_obj x)
 

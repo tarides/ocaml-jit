@@ -1,7 +1,7 @@
 open Import
 
 val all_text :
-  symbol_map:Address.t String.Map.t ->
+  symbols:Symbols.t ->
   got:Bin_table.filled Jit_got.t addressed ->
   plt:Bin_table.filled Jit_plt.t addressed ->
   X86_emitter.buffer addressed ->
@@ -15,7 +15,7 @@ val all_text :
     Errors for either of the above mentioned cases are aggregated into a list. *)
 
 val all :
-  symbol_map:Address.t String.Map.t ->
+  symbols:Symbols.t ->
   section_name:string ->
   X86_emitter.buffer addressed ->
   (unit, string list) result
