@@ -37,7 +37,9 @@ let alloc_all binary_section_map =
       { address; value = binary_section })
 
 let alloc_text jit_text_section =
-  let size = round_to_pages (Jit_text_section.in_memory_size jit_text_section) in
+  let size =
+    round_to_pages (Jit_text_section.in_memory_size jit_text_section)
+  in
   match Externals.memalign size with
   | Ok address -> { address; value = jit_text_section }
   | Error code -> failwithf "posix_memalign failed with code %d" code
@@ -49,7 +51,7 @@ let symbols_union symbol_map symbol_map' =
 let symbol_map { address; value = binary_section } =
   let symbol_map = X86_emitter.labels binary_section in
   String.Map.filter_map symbol_map ~f:(fun name symbol ->
-      match symbol.X86_emitter.sy_pos, name with
+      match (symbol.X86_emitter.sy_pos, name) with
       | None, _ -> failwithf "Symbol %s has no offset" name
       | Some _, ("caml_absf_mask" | "caml_negf_mask") -> None
       | Some offset, _ -> Some (Address.add_int address offset))
@@ -157,7 +159,9 @@ let jit_load_x86 ~outcome_ref:_ asm_program _filename =
   let addressed_text = alloc_text text in
   let other_sections_symbols = local_symbol_map addressed_sections in
   let text_section_symbols = Jit_text_section.symbol_map addressed_text in
-  let local_symbol_map = symbols_union other_sections_symbols text_section_symbols in
+  let local_symbol_map =
+    symbols_union other_sections_symbols text_section_symbols
+  in
   let symbol_map = symbols_union !Globals.symbol_map local_symbol_map in
   Globals.symbol_map := symbol_map;
   let relocated_text = relocate_text ~symbol_map addressed_text in
