@@ -14,3 +14,6 @@
    cmdliner
    ppx_deriving)
  (synopsis "Prototype native toplevel using in-process assembler/linker"))
+
+(package
+ (name compiler-libs-opttoplevel))

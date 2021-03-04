@@ -1,5 +1,6 @@
 (library
  (name jit)
+ (public_name ocaml-jit-proto.jit)
  (libraries compiler-libs compiler-libs.opttoplevel stdext)
  (foreign_stubs
   (language c)

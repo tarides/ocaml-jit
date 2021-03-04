@@ -1,4 +1,5 @@
 (library
  (name stdext)
+ (public_name ocaml-jit-proto.__stdext)
  (preprocess
   (pps ppx_deriving.std)))
