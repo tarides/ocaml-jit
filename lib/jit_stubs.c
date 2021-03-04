@@ -6,6 +6,7 @@
 #include "caml/callback.h"
 #include "caml/alloc.h"
 #include "caml/osdeps.h"
+#include "caml/codefrag.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -123,7 +124,6 @@ CAMLprim value jit_run(value symbols_addresses) {
   CAMLparam1 (symbols_addresses);
   CAMLlocal1 (result);
   void *sym,*sym2;
-  struct code_fragment * cf;
 
   void (*entrypoint)(void);
 
@@ -148,11 +148,8 @@ CAMLprim value jit_run(value symbols_addresses) {
   sym2 = addr_from_caml_option(Field(symbols_addresses, 5));
   if (NULL != sym && NULL != sym2) {
     caml_page_table_add(In_code_area, sym, sym2);
-    cf = caml_stat_alloc(sizeof(struct code_fragment));
-    cf->code_start = (char *) sym;
-    cf->code_end = (char *) sym2;
-    cf->digest_computed = 0;
-    caml_ext_table_add(&caml_code_fragments_table, cf);
+    caml_register_code_fragment((char *) sym, (char *) sym2,
+                                DIGEST_LATER, NULL);
   }
 
   //entrypoint = optsym("__entry");
