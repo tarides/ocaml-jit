@@ -4,7 +4,7 @@
  (package ocaml-jit-proto)
  (modes native)
  (modules jittop)
- (libraries clitop jit compiler-libs.opttoplevel)
+ (libraries clitop jit compiler-libs-opttoplevel)
  (link_flags :standard -linkall))
 
 (executable
@@ -13,7 +13,7 @@
  (package ocaml-jit-proto)
  (modes native)
  (modules nattop)
- (libraries clitop compiler-libs.opttoplevel)
+ (libraries clitop compiler-libs-opttoplevel)
  (link_flags :standard -linkall))
 
 (executable
