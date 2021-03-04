@@ -10,4 +10,7 @@
 
 (package
  (name ocaml-jit-proto)
+ (depends
+   cmdliner
+   ppx_deriving)
  (synopsis "Prototype native toplevel using in-process assembler/linker"))

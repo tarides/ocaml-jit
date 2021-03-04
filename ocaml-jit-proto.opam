@@ -8,6 +8,8 @@ homepage: "https://github.com/NathanReb/ocaml-jit-proto"
 bug-reports: "https://github.com/NathanReb/ocaml-jit-proto/issues"
 depends: [
   "dune" {>= "2.8"}
+  "cmdliner"
+  "ppx_deriving"
   "odoc" {with-doc}
 ]
 build: [
