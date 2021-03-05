@@ -13,7 +13,7 @@
  (depends
    cmdliner
    ppx_deriving)
- (synopsis "Prototype native toplevel using in-process assembler/linker"))
+ (synopsis "Just In Time compiler for OCaml native toplevel"))
 
 (package
  (name compiler-libs-opttoplevel))
