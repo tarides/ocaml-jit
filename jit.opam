@@ -4,8 +4,8 @@ synopsis: "Prototype native toplevel using in-process assembler/linker"
 maintainer: ["Nathan Rebours <nathan.p.rebours@gmail.com"]
 authors: ["Nathan Rebours <nathan.p.rebours@gmail.com"]
 license: "ISC"
-homepage: "https://github.com/NathanReb/ocaml-jit-proto"
-bug-reports: "https://github.com/NathanReb/ocaml-jit-proto/issues"
+homepage: "https://github.com/NathanReb/ocaml-jit"
+bug-reports: "https://github.com/NathanReb/ocaml-jit/issues"
 depends: [
   "dune" {>= "2.8"}
   "cmdliner"
@@ -26,4 +26,4 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/NathanReb/ocaml-jit-proto.git"
+dev-repo: "git+https://github.com/NathanReb/ocaml-jit.git"

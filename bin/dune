@@ -1,7 +1,7 @@
 (executable
  (name jittop)
  (public_name jittop)
- (package ocaml-jit-proto)
+ (package jit)
  (modes native)
  (modules jittop)
  (libraries clitop jit compiler-libs-opttoplevel)
@@ -10,7 +10,7 @@
 (executable
  (name nattop)
  (public_name nattop)
- (package ocaml-jit-proto)
+ (package jit)
  (modes native)
  (modules nattop)
  (libraries clitop compiler-libs-opttoplevel)
@@ -19,7 +19,7 @@
 (executable
  (name bytetop)
  (public_name bytetop)
- (package ocaml-jit-proto)
+ (package jit)
  (modes byte)
  (modules bytetop)
  (libraries clitop compiler-libs.toplevel)
