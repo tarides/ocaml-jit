@@ -38,7 +38,7 @@ let pagesize = Externals.get_page_size ()
 let round_to_pages section_size =
   if section_size = 0 then 0
   else
-    let pages = ((section_size - 1) * pagesize) + 1 in
+    let pages = ((section_size - 1) / pagesize) + 1 in
     pages * pagesize
 
 let alloc_memory binary_section =
