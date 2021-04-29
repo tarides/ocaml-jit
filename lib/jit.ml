@@ -152,7 +152,7 @@ let get_arch () =
   | 64 -> X86_ast.X64
   | i -> failwithf "Unexpected word size: %d" i 16
 
-let jit_load_x86 ~outcome_ref:_ asm_program _filename =
+let jit_load_x86 ~outcome_ref asm_program _filename =
   Debug.print_ast asm_program;
   let section_map = X86_section.Map.from_program asm_program in
   let arch = get_arch () in
@@ -179,7 +179,7 @@ let jit_load_x86 ~outcome_ref:_ asm_program _filename =
     entry_points ~phrase_name:!Opttoploop.phrase_name symbols
   in
   let result = jit_run entry_points in
-  outcome_global := Some result
+  outcome_ref := Some result
 
 let set_debug () =
   match Sys.getenv_opt "OCAML_JIT_DEBUG" with
