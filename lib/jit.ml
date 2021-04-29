@@ -131,7 +131,7 @@ let entry_points ~phrase_name symbols =
         entry;
       }
   | None ->
-      failwithf "Toplevel phase entry point symbol %s is not defined" entry_name
+      failwithf "Toplevel phrase entry point symbol %s is not defined" entry_name
 
 let jit_run entry_points =
   let open Opttoploop in
