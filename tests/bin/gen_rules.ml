@@ -1,9 +1,12 @@
 let byte = "byte"
+
 let nat = "nat"
+
 let jit = "jit"
 
 let pr_output_rule ~mode basename =
-  Printf.printf {|
+  Printf.printf
+    {|
 (rule
  (action
   (with-accepted-exit-codes (or 0 1 125)
@@ -18,11 +21,12 @@ let pr_diff_rule ~mode ~ref basename =
  (alias %stest)
  (action
   (diff %s.%s %s.%s)))
-|}
-    mode basename ref basename mode
+|} mode
+    basename ref basename mode
 
 let pr_alias () =
-  Printf.printf {|
+  Printf.printf
+    {|
 (alias
  (name runtest)
  (deps
@@ -44,9 +48,6 @@ let pr_rules file =
 let is_test_case filename = Filename.check_suffix filename ".ml"
 
 let () =
-  Sys.readdir "."
-  |> Array.to_list
-  |> List.sort String.compare
-  |> List.filter is_test_case
-  |> List.iter pr_rules;
+  Sys.readdir "." |> Array.to_list |> List.sort String.compare
+  |> List.filter is_test_case |> List.iter pr_rules;
   pr_alias ()
