@@ -6,10 +6,11 @@ let pr_output_rule ~mode basename =
   Printf.printf {|
 (rule
  (action
-  (with-outputs-to %s.%s
-   (run bytetop %%{dep:%s.ml}))))
+  (with-accepted-exit-codes (or 0 1 125)
+   (with-outputs-to %s.%s
+    (run %stop %%{dep:%s.ml})))))
 |}
-    basename mode basename
+    basename mode mode basename
 
 let pr_diff_rule ~mode ~ref basename =
   Printf.printf {|

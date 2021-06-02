@@ -1,4 +1,6 @@
 (rule
+ (deps
+   (source_tree .))
  (action
   (with-stdout-to dune.gen
    (run ./bin/gen_rules.exe))))
