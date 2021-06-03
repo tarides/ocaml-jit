@@ -9,7 +9,6 @@ bug-reports: "https://github.com/NathanReb/ocaml-jit/issues"
 depends: [
   "dune" {>= "2.8"}
   "cmdliner"
-  "ppx_deriving"
   "odoc" {with-doc}
 ]
 build: [

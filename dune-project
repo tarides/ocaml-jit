@@ -11,8 +11,7 @@
 (package
  (name jit)
  (depends
-   cmdliner
-   ppx_deriving)
+   cmdliner)
  (synopsis "Just In Time compiler for OCaml native toplevel"))
 
 (package

@@ -60,16 +60,7 @@ module Map = struct
         let current_section = name s_l s_opt s_l' in
         let current_instrs = [] in
         aux String.Map.empty current_section current_instrs tl
-    | line :: _ ->
+    | _line :: _ ->
         failwithf
-          "Invalid program, should start with section but started with: %s"
-          (X86_ast_helpers.show_asm_line line)
-
-  module Bindings = struct
-    open X86_ast_helpers
-
-    type t = (string * asm_line list) list [@@deriving show]
-  end
-
-  let show (t : t) = Bindings.show (String.Map.bindings t)
+          "Invalid program, should start with section"
 end
