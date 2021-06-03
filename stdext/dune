@@ -1,5 +1,3 @@
 (library
  (name stdext)
- (public_name jit.__stdext)
- (preprocess
-  (pps ppx_deriving.std)))
+ (public_name jit.__stdext))

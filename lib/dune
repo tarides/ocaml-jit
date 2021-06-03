@@ -3,6 +3,4 @@
  (libraries compiler-libs compiler-libs-opttoplevel stdext)
  (foreign_stubs
   (language c)
-  (names jit_stubs))
- (preprocess
-  (pps ppx_deriving.std)))
+  (names jit_stubs)))
