@@ -16,7 +16,6 @@ open Import
 open X86_ast
 
 type section = { sec_name : string; mutable sec_instrs : asm_line array }
-[@@deriving eq, ord, show]
 
 type data_size = B8 | B16 | B32 | B64 [@@deriving eq, ord, show]
 
@@ -29,7 +28,6 @@ type symbol = {
   mutable sy_pos : int option;
   mutable sy_num : int option; (* position in .symtab *)
 }
-[@@deriving eq, ord, show]
 
 module Relocation : sig
   module Kind : sig
@@ -42,7 +40,6 @@ module Relocation : sig
   end
 
   type t = { offset_from_section_beginning : int; kind : Kind.t }
-  [@@deriving eq, ord, show]
 end
 
 type buffer
