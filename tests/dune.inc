@@ -134,6 +134,39 @@
 (rule
  (action
   (with-accepted-exit-codes (or 0 1 125)
+   (with-outputs-to rwo_segfault.byte
+    (run bytetop %{dep:rwo_segfault.ml})))))
+
+(rule
+ (action
+  (with-accepted-exit-codes (or 0 1 125)
+   (with-outputs-to rwo_segfault.nat
+    (run nattop %{dep:rwo_segfault.ml})))))
+
+(rule
+ (action
+  (with-accepted-exit-codes (or 0 1 125)
+   (with-outputs-to rwo_segfault.jit
+    (run jittop %{dep:rwo_segfault.ml})))))
+
+(rule
+ (alias bytetest)
+ (action
+  (diff rwo_segfault.expected rwo_segfault.byte)))
+
+(rule
+ (alias nattest)
+ (action
+  (diff rwo_segfault.byte rwo_segfault.nat)))
+
+(rule
+ (alias jittest)
+ (action
+  (diff rwo_segfault.nat rwo_segfault.jit)))
+
+(rule
+ (action
+  (with-accepted-exit-codes (or 0 1 125)
    (with-outputs-to simple_fun.byte
     (run bytetop %{dep:simple_fun.ml})))))
 
