@@ -27,3 +27,7 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/NathanReb/ocaml-jit.git"
+pin-depends: [
+  "compiler-libs-opttoplevel.0.1.0"
+  "git+https://github.com/NathanReb/compiler-libs-opttoplevel.git#0.1.0"
+]

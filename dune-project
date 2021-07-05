@@ -12,8 +12,6 @@
  (name jit)
  (depends
    cmdliner
+   compiler-libs-opttoplevel
    ppx_deriving)
  (synopsis "Just In Time compiler for OCaml native toplevel"))
-
-(package
- (name compiler-libs-opttoplevel))
