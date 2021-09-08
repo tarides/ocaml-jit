@@ -32,7 +32,7 @@ opam pin add compiler-libs-opttoplevel.0.1.0 git+https://github.com/NathanReb/co
 
 And pin `jit` using:
 ```
-opam pin add jit.0.1.1 git+https://github.com/NathanReb/ocaml-jit.git#0.1.1
+opam pin add jit.0.1.2 git+https://github.com/NathanReb/ocaml-jit.git#0.1.2
 ```
 
 If you want to use `#require` directives in your JIT based toplevel, you will also need
@@ -61,7 +61,7 @@ pin-depends: [
     "git+https://github.com/NathanReb/opttopfind.git#0.1.0"
   ]
   [
-    "jit.0.1.1"
+    "jit.0.1.2"
     "git+https://github.com/NathanReb/ocaml-jit.git#0.1.1"
   ]
   [
