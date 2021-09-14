@@ -41,5 +41,5 @@ let dprint t =
   Printf.printf "------ Symbols -----\n%!";
   String.Map.iter
     ~f:(fun ~key ~data ->
-        Printf.printf "%s: %Lx\n%!" key (Address.to_int64 data))
+      Printf.printf "%s: %Lx\n%!" key (Address.to_int64 data))
     t

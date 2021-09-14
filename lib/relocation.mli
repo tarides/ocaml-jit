@@ -46,7 +46,7 @@ type t = {
   size : Size.t;
   kind : Kind.t;
   target : Target.t;
-  addend: int64;
+  addend : int64;
 }
 
 val from_x86_relocation : X86_emitter.Relocation.t -> t option

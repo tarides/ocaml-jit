@@ -49,7 +49,7 @@ type t = {
   size : Size.t;
   kind : Kind.t;
   target : Target.t;
-  addend: int64;
+  addend : int64;
 }
 
 let size_from_reloc_kind (kind : X86_emitter.Relocation.Kind.t) =
@@ -65,7 +65,8 @@ let label_from_reloc_kind (kind : X86_emitter.Relocation.Kind.t) =
   | REL32 (label, _) | DIR32 (label, _) | DIR64 (label, _) -> label
 
 let addend_from_reloc_kind (kind : X86_emitter.Relocation.Kind.t) =
-  match kind with REL32 (_, addend) | DIR32 (_, addend) | DIR64 (_, addend) -> addend
+  match kind with
+  | REL32 (_, addend) | DIR32 (_, addend) | DIR64 (_, addend) -> addend
 
 let from_x86_relocation relocation =
   let open Option.Op in
