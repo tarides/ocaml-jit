@@ -24,7 +24,7 @@ external mprotect_ro : Address.t -> int -> (unit, int) result
 external mprotect_rx : Address.t -> int -> (unit, int) result
   = "jit_mprotect_rx"
 
-external run_toplevel : Jit_unit.Entry_points.t -> Opttoploop.res
+external run_toplevel : Jit_unit.Entry_points.t -> Toplevel_res.t
   = "jit_run_toplevel"
 
 external get_page_size : unit -> int = "jit_get_page_size"
