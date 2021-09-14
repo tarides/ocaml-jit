@@ -142,7 +142,7 @@ let jit_run entry_points =
   with
   | Exception _ as r -> r
   | Result r -> (
-      match Obj.magic r with
+      match (Obj.magic r : Toplevel_res.t) with
       | Ok x -> Result x
       | Err s -> failwithf "Jit.run: %s" s)
 
