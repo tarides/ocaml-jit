@@ -156,11 +156,9 @@ CAMLprim value jit_run(value symbols_addresses) {
 
   sym = addr_from_caml_option(Field(symbols_addresses, 4));
   sym2 = addr_from_caml_option(Field(symbols_addresses, 5));
-  if (NULL != sym && NULL != sym2) {
-    caml_page_table_add(In_code_area, sym, sym2);
+  if (NULL != sym && NULL != sym2)
     caml_register_code_fragment((char *) sym, (char *) sym2,
                                 DIGEST_LATER, NULL);
-  }
 
   entrypoint = Nativeint_val(Field(symbols_addresses, 6));
   result = caml_callback((value)(&entrypoint), 0);
