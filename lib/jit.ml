@@ -220,7 +220,7 @@ end
 
 let backend = (module Backend : Backend_intf.S)
 
-let jit_load_body ppf program =
+let jit_load_body ppf (program : Lambda.program) =
   let open Config in
   let open Opttoploop in
   let dll =
@@ -228,12 +228,27 @@ let jit_load_body ppf program =
     else Filename.temp_file ("caml" ^ !phrase_name) ext_dll
   in
   let filename = Filename.chop_extension dll in
+  if Config.flambda2 then begin
+    let backend = (module Flambda2_backend_impl : Flambda2.Flambda_backend_intf.S) in
+    let middle_end = Flambda2.Flambda_middle_end.middle_end in
+    let flambda2_to_cmm = Flambda2_to_cmm.Un_cps.unit in
+    Asmgen.compile_implementation_flambda2 () ~toplevel:need_symbol
+      ~backend ~filename ~prefixname:filename
+      ~middle_end ~ppf_dump:ppf
+      ~size:program.main_module_block_size
+      ~module_ident:program.module_ident
+      ~module_initializer:program.code
+      ~required_globals:program.required_globals
+      ~flambda2_to_cmm
+  end
+  else begin
   let middle_end =
     if Config.flambda then Flambda_middle_end.lambda_to_clambda
     else Closure_middle_end.lambda_to_clambda
   in
   Asmgen.compile_implementation ~toplevel:need_symbol ~backend ~filename
-    ~prefixname:filename ~middle_end ~ppf_dump:ppf program;
+    ~prefixname:filename ~middle_end ~ppf_dump:ppf program
+  end;
   match !outcome_global with
   | None -> failwith "No evaluation outcome"
   | Some res ->
