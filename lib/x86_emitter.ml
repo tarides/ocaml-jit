@@ -579,6 +579,16 @@ let emit_movapd b dst src =
       emit_mod_rm_reg b 0 [ 0x0f; 0x29 ] rm (rd_of_regf reg)
   | _ -> assert false
 
+let emit_movd b ~dst ~src =
+  match (dst, src) with
+  | Regf reg, ((Reg32 _ | Mem _ | Mem64_RIP _) as rm) ->
+    buf_int8 b 0x66;
+    emit_mod_rm_reg b 0 [ 0x0f; 0x6e ] rm (rd_of_regf reg)
+  | ((Reg32 _ | Mem _ | Mem64_RIP _) as rm), Regf reg ->
+    buf_int8 b 0x66;
+    emit_mod_rm_reg b 0 [ 0x0f; 0x7e ] rm (rd_of_regf reg)
+  | _ -> assert false
+
 let emit_movsd b dst src =
   match (dst, src) with
   | Regf reg, ((Regf _ | Mem _ | Mem64_RIP _) as rm) ->
@@ -606,6 +616,28 @@ let emit_andpd b dst src =
   | Regf reg, ((Regf _ | Mem _ | Mem64_RIP _) as rm) ->
       buf_int8 b 0x66;
       emit_mod_rm_reg b 0 [ 0x0f; 0x54 ] rm (rd_of_regf reg)
+  | _ -> assert false
+
+let emit_bsf b ~dst ~src =
+  match (dst, src) with
+  | Reg16 reg, ((Reg16 _ | Mem _ | Mem64_RIP _) as rm)
+  | Reg32 reg, ((Reg32 _ | Mem _ | Mem64_RIP _) as rm) ->
+    (* BSF r16, r/m16 and BSF r32, r/m32 *)
+    emit_mod_rm_reg b 0 [ 0x0F; 0xBC ] rm (rd_of_reg64 reg)
+  | Reg64 reg, ((Reg64 _ | Mem _ | Mem64_RIP _) as rm) ->
+    (* BSF r64, r/m64 *)
+    emit_mod_rm_reg b rexw [ 0x0F; 0xBC ] rm (rd_of_reg64 reg)
+  | _ -> assert false
+
+let emit_bsr b ~dst ~src =
+  match (dst, src) with
+  | Reg16 reg, ((Reg16 _ | Mem _ | Mem64_RIP _) as rm)
+  | Reg32 reg, ((Reg32 _ | Mem _ | Mem64_RIP _) as rm) ->
+    (* BSR r16, r/m16 and BSR r32, r/m32 *)
+    emit_mod_rm_reg b 0 [ 0x0F; 0xBD ] rm (rd_of_reg64 reg)
+  | Reg64 reg, ((Reg64 _ | Mem _ | Mem64_RIP _) as rm) ->
+    (* BSR r64, r/m64 *)
+    emit_mod_rm_reg b rexw [ 0x0F; 0xBD ] rm (rd_of_reg64 reg)
   | _ -> assert false
 
 let imm8_of_rounding rounding =
@@ -1064,6 +1096,26 @@ let emit_j b loc condition dst =
         b loc symbol
   | _ -> assert false
 
+let imm8_of_float_condition = function
+  | EQf -> 0x00
+  | LTf -> 0x01
+  | LEf -> 0x02
+  | UNORDf -> 0x03
+  | NEQf -> 0x04
+  | NLTf -> 0x05
+  | NLEf -> 0x06
+  | ORDf -> 0x07
+
+let emit_cmpsd b ~condition ~dst ~src =
+  match (dst, src) with
+  | (Regf reg, ((Regf _ | Mem _ | Mem64_RIP _) as rm)) ->
+    (* CMPSD xmm1, xmm2/m64, imm8 *)
+    let condition = imm8_of_float_condition condition in
+    buf_int8 b 0xF2;
+    emit_mod_rm_reg b no_rex [ 0x0F; 0xC2 ] rm (rd_of_regf reg);
+    buf_int8 b condition
+  | _ -> assert false
+
 let emit_cmov b condition dst src =
   match (dst, src) with
   | (Reg64 reg | Reg32 reg), ((Reg64 _ | Reg32 _ | Mem _ | Mem64_RIP _) as rm)
@@ -1176,6 +1228,42 @@ let emit_pop b dst =
   | (Mem _ | Mem64_RIP _) as rm -> emit_mod_rm_reg b no_rex [ 0x8F ] rm 0
   | _ -> assert false
 
+let emit_popcnt b ~dst ~src =
+  match (dst, src) with
+  | (Reg16 reg, ((Reg16 _ | Mem _ | Mem64_RIP _) as rm))
+  | (Reg32 reg, ((Reg32 _ | Mem _ | Mem64_RIP _) as rm)) ->
+    (* POPCNT r16, r/m16 and POPCNT r32, r/m32 *)
+    buf_int8 b 0xF3;
+    emit_mod_rm_reg b no_rex [ 0x0F; 0xB8 ] rm (rd_of_reg64 reg);
+  | (Reg64 reg, ((Reg64 _ | Mem _ | Mem64_RIP _) as rm)) ->
+    (* POPCNT r64, r/m64 *)
+    buf_int8 b 0xF3;
+    emit_mod_rm_reg b rexw [ 0x0F; 0xB8 ] rm (rd_of_reg64 reg);
+  | _ -> assert false
+
+let rd_of_prefetch_hint = function
+  | Nta -> 0
+  | T0 -> 1
+  | T1 -> 2
+  | T2 -> 3
+
+let emit_prefetch b ~is_write ~hint rm =
+  match (is_write, hint, rm) with
+  | (false, _, (Mem _ | Mem64_RIP _)) ->
+    (* PREFETCHT0 m8, PREFETCHT1 m8, PREFETCHT1 m8 and PREFETCHNTA m8 *)
+    emit_mod_rm_reg b no_rex [ 0x0F; 0x18 ] rm (rd_of_prefetch_hint hint)
+  | (true, (T0 | T1), (Mem _ | Mem64_RIP _)) ->
+    (* PREFETCHW m8 and PREFETCHWT1 m8 *)
+    (* X86_gas seems to also emit prefetchwt1 if hint is [T2 | Nta], not sure
+       whether such instruction is ever produced. If so I assume we should
+       behave similarly. *)
+    emit_mod_rm_reg b no_rex [ 0x0F; 0x0D ] rm (rd_of_prefetch_hint hint)
+  | _ -> assert false
+
+let emit_rdtsc b = buf_opcodes b [ 0x0F; 0x31 ]
+
+let emit_rdpmc b = buf_opcodes b [ 0x0F; 0x33 ]
+
 let emit_leave b = buf_int8 b 0xC9
 
 let emit_inc b = function
@@ -1203,6 +1291,26 @@ let emit_ret b = buf_int8 b 0xC3
 let emit_cqto b =
   emit_rex b rexw;
   buf_int8 b 0x99
+
+let emit_crc32 b ~dst ~src =
+  match (dst, src) with
+  | (Reg32 reg, ((Reg8L _ | Reg8H _ | Mem {typ = BYTE; _} | Mem64_RIP (BYTE, _, _)) as rm)) ->
+    (* CRC32 r32, r/m8 *)
+    buf_int8 b 0xF2;
+    emit_mod_rm_reg b rex [ 0x0F; 0x38; 0xF0 ] rm (rd_of_reg64 reg)
+  | (Reg64 reg, ((Reg8L _ | Reg8H _ | Mem {typ = BYTE; _} | Mem64_RIP (BYTE, _, _)) as rm)) ->
+    (* CRC32 r64, r/m8 *)
+    buf_int8 b 0xF2;
+    emit_mod_rm_reg b rexw [ 0x0F; 0x38; 0xF0 ] rm (rd_of_reg64 reg)
+  | (Reg32 reg, ((Reg16 _ | Reg32 _ | Mem _ | Mem64_RIP _) as rm)) ->
+    (* CRC32 r32, r/m16 and CRC32 r32, r/m32 *)
+    buf_int8 b 0xF2;
+    emit_mod_rm_reg b no_rex [ 0x0F; 0x38; 0xF1 ] rm (rd_of_reg64 reg)
+  | (Reg64 reg, ((Reg64 _ | Mem _ | Mem64_RIP _) as rm)) ->
+     (* CRC32 r64, r/m64 *)
+    buf_int8 b 0xF2;
+    emit_mod_rm_reg b rexw [ 0x0F; 0x38; 0xF1 ] rm (rd_of_reg64 reg)
+  | _ -> assert false
 
 let emit_BSWAP b = function
   | Reg32 reg -> buf_opcodes b [ 0x0F; 0xC8 + reg7 (rd_of_reg64 reg) ]
@@ -1318,6 +1426,8 @@ let assemble_instr b loc = function
   | ADDSD (src, dst) -> emit_addsd b dst src
   | AND (src, dst) -> emit_AND b dst src
   | ANDPD (src, dst) -> emit_andpd b dst src
+  | BSF (src, dst) -> emit_bsf b ~dst ~src
+  | BSR (src, dst) -> emit_bsr b ~dst ~src
   | BSWAP arg -> emit_BSWAP b arg
   | CALL dst -> emit_call b dst
   | CVTSI2SD (src, dst) -> emit_CVTSI2SD b dst src
@@ -1327,7 +1437,9 @@ let assemble_instr b loc = function
   | CVTSS2SD (src, dst) -> emit_CVTSS2SD b dst src
   | COMISD (src, dst) -> emit_comisd b dst src
   | CQO -> emit_cqto b
+  | CRC32 (src, dst) -> emit_crc32 b ~dst ~src
   | CMP (src, dst) -> emit_CMP b dst src
+  | CMPSD (condition, src, dst) -> emit_cmpsd b ~condition ~dst ~src
   | CMOV (condition, src, dst) -> emit_cmov b condition dst src
   | CDQ -> buf_int8 b 0x99
   | DIVSD (src, dst) -> emit_divsd b dst src
@@ -1376,6 +1488,7 @@ let assemble_instr b loc = function
   | LEA (src, dst) -> emit_LEA b dst src
   | MOV (src, dst) -> emit_MOV b dst src
   | MOVAPD (src, dst) -> emit_movapd b dst src
+  | MOVD (src, dst) -> emit_movd b ~dst ~src
   | MOVLPD (src, dst) -> emit_movlpd b dst src
   | MOVSD (src, dst) -> emit_movsd b dst src
   | MOVSS (src, dst) -> emit_movss b dst src
@@ -1388,6 +1501,10 @@ let assemble_instr b loc = function
   | OR (src, dst) -> emit_OR b dst src
   | PUSH dst -> emit_push b dst
   | POP dst -> emit_pop b dst
+  | POPCNT (src, dst) -> emit_popcnt b ~dst ~src
+  | PREFETCH (is_write, hint, rm) -> emit_prefetch b ~is_write ~hint rm
+  | RDTSC -> emit_rdtsc b
+  | RDPMC -> emit_rdpmc b
   | RET -> emit_ret b
   | ROUNDSD (rounding, src, dst) -> emit_roundsd b dst rounding src
   | SAL (src, dst) -> emit_SAL b dst src
@@ -1481,6 +1598,7 @@ let assemble_line b loc ins =
         for _ = 1 to n do
           buf_int8 b 0
         done
+    | Hidden _ | Weak _ | Reloc _ -> ()
   with e ->
     Printf.eprintf "Exception %s:\n%!" (Printexc.to_string e);
     (*

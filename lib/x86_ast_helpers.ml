@@ -33,6 +33,17 @@ type condition = X86_ast.condition =
   | NP (* parity *)
 [@@deriving eq, ord, show]
 
+type float_condition = X86_ast.float_condition =
+  | EQf
+  | LTf
+  | LEf
+  | UNORDf
+  | NEQf
+  | NLTf
+  | NLEf
+  | ORDf
+[@@deriving eq, ord, show]
+
 type rounding = X86_ast.rounding =
   | RoundUp
   | RoundDown
@@ -107,6 +118,13 @@ type addr = X86_ast.addr = {
       (if scale = 0, idx is ignored and base must be None)
   *)
 
+type prefetch_temporal_locality_hint = X86_ast.prefetch_temporal_locality_hint =
+  | Nta
+  | T1
+  | T2
+  | T0
+[@@deriving eq, ord, show]
+
 type arg = X86_ast.arg =
   | Imm of int64  (** Operand is an immediate constant integer *)
   | Sym of string
@@ -127,13 +145,17 @@ type instruction = X86_ast.instruction =
   | ADDSD of arg * arg
   | AND of arg * arg
   | ANDPD of arg * arg
+  | BSF of arg * arg
+  | BSR of arg * arg
   | BSWAP of arg
   | CALL of arg
   | CDQ
   | CMOV of condition * arg * arg
   | CMP of arg * arg
+  | CMPSD of float_condition * arg * arg
   | COMISD of arg * arg
   | CQO
+  | CRC32 of arg * arg
   | CVTSD2SI of arg * arg
   | CVTSD2SS of arg * arg
   | CVTSI2SD of arg * arg
@@ -185,6 +207,7 @@ type instruction = X86_ast.instruction =
   | LEAVE
   | MOV of arg * arg
   | MOVAPD of arg * arg
+  | MOVD of arg * arg
   | MOVLPD of arg * arg
   | MOVSD of arg * arg
   | MOVSS of arg * arg
@@ -196,7 +219,11 @@ type instruction = X86_ast.instruction =
   | NOP
   | OR of arg * arg
   | POP of arg
+  | POPCNT of arg * arg
+  | PREFETCH of bool * prefetch_temporal_locality_hint * arg
   | PUSH of arg
+  | RDTSC
+  | RDPMC
   | RET
   | ROUNDSD of rounding * arg * arg
   | SAL of arg * arg
@@ -213,6 +240,15 @@ type instruction = X86_ast.instruction =
   | XORPD of arg * arg
 [@@deriving eq, ord, show]
 
+(* ELF specific *)
+type reloc_type = X86_ast.reloc_type = R_X86_64_PLT32
+
+type reloc = X86_ast.reloc = {
+  offset : constant;
+  name : reloc_type;
+  expr : constant;
+}
+
 type asm_line = X86_ast.asm_line =
   | Ins of instruction
   | Align of bool * int
@@ -220,6 +256,8 @@ type asm_line = X86_ast.asm_line =
   | Bytes of string
   | Comment of string
   | Global of string
+  | Hidden of string
+  | Weak of string
   | Long of constant
   | NewLabel of string * data_type
   | Quad of constant
@@ -236,11 +274,12 @@ type asm_line = X86_ast.asm_line =
   | Cfi_startproc
   | File of int * string (* (file_num, file_name) *)
   | Indirect_symbol of string
-  | Loc of int * int * int (* (file_num, line, col) *)
+  | Loc of { file_num : int; line : int; col : int; discriminator : int option }
   | Private_extern of string
   | Set of string * constant
   | Size of string * constant
   | Type of string * string
+  | Reloc of reloc
 [@@deriving eq, ord, show]
 
 type asm_program = asm_line list [@@deriving eq, ord, show]
