@@ -612,10 +612,10 @@ let imm8_of_rounding rounding =
   (* Precision Mask = Normal instead of Inexact *)
   (* Rounding Select = imm8.RC instead of MXCSR.RC *)
   match rounding with
-  | RoundNearest -> 0b00
-  | RoundDown -> 0b01
-  | RoundUp -> 0x10
-  | RoundTruncate -> 0x11
+  | RoundNearest -> 0b0100
+  | RoundDown -> 0b0101
+  | RoundUp -> 0b0110
+  | RoundTruncate -> 0b0111
 
 let emit_roundsd b dst rounding src =
   let rounding = imm8_of_rounding rounding in
