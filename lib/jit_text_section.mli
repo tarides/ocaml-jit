@@ -25,7 +25,7 @@ type _ t
 val name : string
 (** Name of the text section: [".text"] *)
 
-val from_binary_section : X86_emitter.buffer -> need_reloc t
+val from_binary_section : X86_binary_emitter.buffer -> need_reloc t
 (** Creates a text section with empty GOT and PLT. These will be filled
     along with relocations applied by [relocate].
     The returned section can be used to determine the size of the final text section

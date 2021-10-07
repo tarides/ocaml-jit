@@ -25,12 +25,15 @@ let union t t' =
       failwithf "Symbol %s defined in several sections" symbol_name)
 
 let from_binary_section { address; value = binary_section } =
-  let symbol_map = X86_emitter.labels binary_section in
-  String.Map.filter_map symbol_map ~f:(fun name symbol ->
-      match (symbol.X86_emitter.sy_pos, name) with
+  let symbol_map = X86_binary_emitter.labels binary_section in
+  X86_binary_emitter.StringMap.fold
+    (fun name symbol acc ->
+      match (symbol.X86_binary_emitter.sy_pos, name) with
       | None, _ -> failwithf "Symbol %s has no offset" name
-      | Some _, ("caml_absf_mask" | "caml_negf_mask") -> None
-      | Some offset, _ -> Some (Address.add_int address offset))
+      | Some _, ("caml_absf_mask" | "caml_negf_mask") -> acc
+      | Some offset, _ ->
+          String.Map.add ~key:name ~data:(Address.add_int address offset) acc)
+    symbol_map String.Map.empty
 
 let find t name =
   match String.Map.find_opt name t with

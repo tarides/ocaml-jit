@@ -23,7 +23,7 @@ type filled
 module type S = sig
   type _ t
 
-  val from_binary_section : X86_emitter.buffer -> empty t
+  val from_binary_section : X86_binary_emitter.buffer -> empty t
   (** Creates a table with all the entries needed for the given binary section.
       The table will have the right size, i.e. one entry per corresponding relative
       relocations in the given section. You need to use [fill] to write the actual
@@ -57,7 +57,7 @@ module Make (X : IN) : S = struct
   type _ t = { index_map : int String.Map.t; content : Address.t array }
 
   let from_binary_section binary_section =
-    let raw_relocations = X86_emitter.relocations binary_section in
+    let raw_relocations = X86_binary_emitter.relocations binary_section in
     let relocations =
       List.filter_map ~f:Relocation.from_x86_relocation raw_relocations
     in

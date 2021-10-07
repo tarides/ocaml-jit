@@ -35,7 +35,9 @@ end
 module Size = struct
   type t = S64 | S32
 
-  let to_data_size = function S64 -> X86_emitter.B64 | S32 -> X86_emitter.B32
+  let to_data_size = function
+    | S64 -> X86_binary_emitter.B64
+    | S32 -> X86_binary_emitter.B32
 
   let to_int = function S32 -> 4 | S64 -> 8
 end
@@ -52,25 +54,26 @@ type t = {
   addend : int64;
 }
 
-let size_from_reloc_kind (kind : X86_emitter.Relocation.Kind.t) =
+let size_from_reloc_kind (kind : X86_binary_emitter.Relocation.Kind.t) =
   match kind with REL32 _ | DIR32 _ -> Size.S32 | DIR64 _ -> Size.S64
 
-let kind_from_reloc_kind (kind : X86_emitter.Relocation.Kind.t) =
+let kind_from_reloc_kind (kind : X86_binary_emitter.Relocation.Kind.t) =
   match kind with
   | DIR32 _ | DIR64 _ -> Kind.Absolute
   | REL32 _ -> Kind.Relative
 
-let label_from_reloc_kind (kind : X86_emitter.Relocation.Kind.t) =
+let label_from_reloc_kind (kind : X86_binary_emitter.Relocation.Kind.t) =
   match kind with
   | REL32 (label, _) | DIR32 (label, _) | DIR64 (label, _) -> label
 
-let addend_from_reloc_kind (kind : X86_emitter.Relocation.Kind.t) =
+let addend_from_reloc_kind (kind : X86_binary_emitter.Relocation.Kind.t) =
   match kind with
   | REL32 (_, addend) | DIR32 (_, addend) | DIR64 (_, addend) -> addend
 
 let from_x86_relocation relocation =
   let open Option.Op in
-  let ({ offset_from_section_beginning; kind } : X86_emitter.Relocation.t) =
+  let ({ offset_from_section_beginning; kind }
+        : X86_binary_emitter.Relocation.t) =
     relocation
   in
   let label = label_from_reloc_kind kind in
@@ -82,7 +85,8 @@ let from_x86_relocation relocation =
 
 let from_x86_relocation_err relocation =
   let open Result.Op in
-  let ({ offset_from_section_beginning; kind } : X86_emitter.Relocation.t) =
+  let ({ offset_from_section_beginning; kind }
+        : X86_binary_emitter.Relocation.t) =
     relocation
   in
   let label = label_from_reloc_kind kind in

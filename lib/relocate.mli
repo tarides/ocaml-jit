@@ -20,7 +20,7 @@ val all_text :
   symbols:Symbols.t ->
   got:Bin_table.filled Jit_got.t addressed ->
   plt:Bin_table.filled Jit_plt.t addressed ->
-  X86_emitter.buffer addressed ->
+  X86_binary_emitter.buffer addressed ->
   (unit, string list) result
 (** Apply all relocations to the given .text binary section as patches.
     Symbols' absolute addresses are looked up using the provided tables for PLT and GOT based
@@ -33,7 +33,7 @@ val all_text :
 val all :
   symbols:Symbols.t ->
   section_name:string ->
-  X86_emitter.buffer addressed ->
+  X86_binary_emitter.buffer addressed ->
   (unit, string list) result
 (** Same as [apply_all_text] but for any other section.
     The section is expected to contain no GOT nor PLT based relocations. If any such relocation is found

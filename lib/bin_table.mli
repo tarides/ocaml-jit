@@ -23,7 +23,7 @@ type filled
 module type S = sig
   type _ t
 
-  val from_binary_section : X86_emitter.buffer -> empty t
+  val from_binary_section : X86_binary_emitter.buffer -> empty t
   (** Creates a table with all the entries needed for the given binary section.
       The table will have the right size, i.e. one entry per corresponding relative
       relocations in the given section. You need to use [fill] to write the actual

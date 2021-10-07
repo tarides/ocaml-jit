@@ -23,7 +23,7 @@ type relocated = Bin_table.filled
 let name = ".text"
 
 type 'a t = {
-  binary_section : X86_emitter.buffer;
+  binary_section : X86_binary_emitter.buffer;
   got : 'a Jit_got.t;
   plt : 'a Jit_plt.t;
 }
@@ -34,7 +34,7 @@ let from_binary_section binary_section =
   { binary_section; got; plt }
 
 let in_memory_size { binary_section; got; plt } =
-  let section_size = X86_emitter.size binary_section in
+  let section_size = X86_binary_emitter.size binary_section in
   let got_size = Jit_got.in_memory_size got in
   let plt_size = Jit_plt.in_memory_size plt in
   section_size + got_size + plt_size
@@ -42,7 +42,7 @@ let in_memory_size { binary_section; got; plt } =
 let relocate ~symbols (t : need_reloc t addressed) =
   let open Result.Op in
   let got_address =
-    Address.add_int t.address (X86_emitter.size t.value.binary_section)
+    Address.add_int t.address (X86_binary_emitter.size t.value.binary_section)
   in
   let got = Jit_got.fill symbols t.value.got in
   let plt_address = Address.add_int got_address (Jit_got.in_memory_size got) in
@@ -57,7 +57,7 @@ let relocate ~symbols (t : need_reloc t addressed) =
   { t with value }
 
 let content t =
-  X86_emitter.contents t.binary_section
+  X86_binary_emitter.contents t.binary_section
   ^ Jit_got.content t.got ^ Jit_plt.content t.plt
 
 let symbols { address; value = t } =

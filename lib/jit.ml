@@ -18,11 +18,12 @@ open Import
 
 let outcome_global : Opttoploop.evaluation_outcome option ref = ref None
 
-(** Assemble each section using X86_emitter. Empty sections are filtered *)
+(** Assemble each section using X86_binary_emitter. Empty sections are filtered *)
 let binary_section_map ~arch section_map =
   String.Map.filter_map section_map ~f:(fun name instructions ->
       let binary_section = X86_section.assemble ~arch { name; instructions } in
-      if X86_emitter.size binary_section = 0 then None else Some binary_section)
+      if X86_binary_emitter.size binary_section = 0 then None
+      else Some binary_section)
 
 let extract_text_section binary_section_map =
   let name = Jit_text_section.name in
@@ -42,7 +43,7 @@ let round_to_pages section_size =
     pages * pagesize
 
 let alloc_memory binary_section =
-  let size = round_to_pages (X86_emitter.size binary_section) in
+  let size = round_to_pages (X86_binary_emitter.size binary_section) in
   match Externals.memalign size with
   | Ok address -> address
   | Error msg -> failwithf "posix_memalign failed: %s" msg
@@ -102,8 +103,8 @@ let load_text { address; value = text_section } =
 let load_sections addressed_sections =
   String.Map.iter addressed_sections
     ~f:(fun ~key:name ~data:{ address; value = binary_section } ->
-      let size = X86_emitter.size binary_section in
-      let content = X86_emitter.contents binary_section in
+      let size = X86_binary_emitter.size binary_section in
+      let content = X86_binary_emitter.contents binary_section in
       Externals.load_section address content size;
       if is_ro name then
         set_protection ~mprotect:Externals.mprotect_ro ~name address size)
@@ -228,27 +229,24 @@ let jit_load_body ppf (program : Lambda.program) =
     else Filename.temp_file ("caml" ^ !phrase_name) ext_dll
   in
   let filename = Filename.chop_extension dll in
-  if Config.flambda2 then begin
-    let backend = (module Flambda2_backend_impl : Flambda2.Flambda_backend_intf.S) in
-    let middle_end = Flambda2.Flambda_middle_end.middle_end in
-    let flambda2_to_cmm = Flambda2_to_cmm.To_cmm.unit in
-    Asmgen.compile_implementation_flambda2 () ~toplevel:need_symbol
-      ~backend ~filename ~prefixname:filename
-      ~middle_end ~ppf_dump:ppf
-      ~size:program.main_module_block_size
-      ~module_ident:program.module_ident
-      ~module_initializer:program.code
-      ~required_globals:program.required_globals
-      ~flambda2_to_cmm
-  end
-  else begin
-  let middle_end =
-    if Config.flambda then Flambda_middle_end.lambda_to_clambda
-    else Closure_middle_end.lambda_to_clambda
-  in
-  Asmgen.compile_implementation ~toplevel:need_symbol ~backend ~filename
-    ~prefixname:filename ~middle_end ~ppf_dump:ppf program
-  end;
+  (if Config.flambda2 then
+   let backend =
+     (module Flambda2_backend_impl : Flambda2.Flambda_backend_intf.S)
+   in
+   let middle_end = Flambda2.Flambda_middle_end.middle_end in
+   let flambda2_to_cmm = Flambda2_to_cmm.To_cmm.unit in
+   Asmgen.compile_implementation_flambda2 () ~toplevel:need_symbol ~backend
+     ~filename ~prefixname:filename ~middle_end ~ppf_dump:ppf
+     ~size:program.main_module_block_size ~module_ident:program.module_ident
+     ~module_initializer:program.code ~required_globals:program.required_globals
+     ~flambda2_to_cmm
+  else
+    let middle_end =
+      if Config.flambda then Flambda_middle_end.lambda_to_clambda
+      else Closure_middle_end.lambda_to_clambda
+    in
+    Asmgen.compile_implementation ~toplevel:need_symbol ~backend ~filename
+      ~prefixname:filename ~middle_end ~ppf_dump:ppf program);
   match !outcome_global with
   | None -> failwith "No evaluation outcome"
   | Some res ->

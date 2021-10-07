@@ -18,8 +18,7 @@ open Import
 
 let print_ast _ = ()
 
-let print_section_map _section_map =
-  ()
+let print_section_map _section_map = ()
 
 let write_bin_file ~filename content =
   let oc = open_out_bin filename in
@@ -33,7 +32,7 @@ let save_binary_sections ~phrase_name binary_section_map =
           Format.asprintf "%s.section%s.%a" phrase_name section_name Address.pp
             buffer.address
         in
-        write_bin_file ~filename (X86_emitter.contents buffer.value))
+        write_bin_file ~filename (X86_binary_emitter.contents buffer.value))
 
 let save_text_section ~phrase_name { address; value = text_section } =
   if !Globals.debug then
@@ -43,5 +42,4 @@ let save_text_section ~phrase_name { address; value = text_section } =
     in
     write_bin_file ~filename (Jit_text_section.content text_section)
 
-let print_binary_section_map _binary_section_map =
-  ()
+let print_binary_section_map _binary_section_map = ()

@@ -31,7 +31,7 @@ end
 module Size : sig
   type t = S64 | S32
 
-  val to_data_size : t -> X86_emitter.data_size
+  val to_data_size : t -> X86_binary_emitter.data_size
 
   val to_int : t -> int
   (** Returns the size in bytes corresponding to the given relocation size *)
@@ -49,9 +49,10 @@ type t = {
   addend : int64;
 }
 
-val from_x86_relocation : X86_emitter.Relocation.t -> t option
+val from_x86_relocation : X86_binary_emitter.Relocation.t -> t option
 (** Returns the type of relative relocation is the given relocation is relative, returns
     [None] otherwise or if the target label cannot be parsed properly by [from_label]. *)
 
-val from_x86_relocation_err : X86_emitter.Relocation.t -> (t, string) result
+val from_x86_relocation_err :
+  X86_binary_emitter.Relocation.t -> (t, string) result
 (** Same as [from_x86_relocation] but returns an error instead of [None]. *)

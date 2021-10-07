@@ -26,9 +26,12 @@ type t = { name : string; instructions : X86_ast.asm_line list }
 
 let assemble ~arch { name; instructions } =
   let section =
-    { X86_emitter.sec_name = name; sec_instrs = Array.of_list instructions }
+    {
+      X86_binary_emitter.sec_name = name;
+      sec_instrs = Array.of_list instructions;
+    }
   in
-  X86_emitter.assemble_section arch section
+  X86_binary_emitter.assemble_section arch section
 
 module Map = struct
   type nonrec t = X86_ast.asm_line list String.Map.t
@@ -60,7 +63,5 @@ module Map = struct
         let current_section = name s_l s_opt s_l' in
         let current_instrs = [] in
         aux String.Map.empty current_section current_instrs tl
-    | _line :: _ ->
-        failwithf
-          "Invalid program, should start with section"
+    | _line :: _ -> failwithf "Invalid program, should start with section"
 end

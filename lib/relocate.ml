@@ -82,12 +82,12 @@ let one ~symbols ~got ~plt ~section_name binary_section t =
           (Address.to_int64 src_address)
   in
   let size = Size.to_data_size t.size in
-  X86_emitter.add_patch ~offset:t.offset_from_section_beginning ~size ~data
-    binary_section.value
+  X86_binary_emitter.add_patch ~offset:t.offset_from_section_beginning ~size
+    ~data binary_section.value
 
 let all_gen ~symbols ~got ~plt ~section_name binary_section =
   let open Result.Op in
-  let raw_relocations = X86_emitter.relocations binary_section.value in
+  let raw_relocations = X86_binary_emitter.relocations binary_section.value in
   let* relocations =
     Result.List.map_all ~f:from_x86_relocation_err raw_relocations
   in
