@@ -609,13 +609,17 @@ let emit_andpd b dst src =
   | _ -> assert false
 
 let imm8_of_rounding rounding =
+  (* bits are:
+     - 3: Precision Mask (0 = Normal, 1 = Inexact)
+     - 2: Rounding Select (0 = Use bits 1 and 0 for Rounding mode, 1 = MXCSR.RC)
+     - 1 and 0: Rounding mode *)
   (* Precision Mask = Normal instead of Inexact *)
   (* Rounding Select = imm8.RC instead of MXCSR.RC *)
   match rounding with
-  | RoundNearest -> 0b1000
-  | RoundDown -> 0b1001
-  | RoundUp -> 0b1010
-  | RoundTruncate -> 0b1011
+  | RoundNearest -> 0b0000
+  | RoundDown -> 0b0001
+  | RoundUp -> 0b0010
+  | RoundTruncate -> 0b0011
 
 let emit_roundsd b dst rounding src =
   let rounding = imm8_of_rounding rounding in
