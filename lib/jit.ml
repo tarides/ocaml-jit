@@ -16,7 +16,7 @@
 
 open Import
 
-let outcome_global : Toploop.Native.evaluation_outcome option ref = ref None
+let outcome_global : Toploop.evaluation_outcome option ref = ref None
 
 (** Assemble each section using X86_emitter. Empty sections are filtered *)
 let binary_section_map ~arch section_map =
@@ -137,7 +137,7 @@ let entry_points ~phrase_name symbols =
 let jit_run entry_points =
   let open Toploop in
   match
-    try Native.Result (Obj.magic (Externals.run_toplevel entry_points))
+    try Result (Obj.magic (Externals.run_toplevel entry_points))
     with exn -> Exception exn
   with
   | Exception _ as r -> r
@@ -249,4 +249,4 @@ let jit_lookup_symbol symbol =
 let init_top () =
   set_debug ();
   Toploop.Native.register_jit
-    { Toploop.Native.Jit.load = jit_load; lookup_symbol = jit_lookup_symbol }
+    { load = jit_load; lookup_symbol = jit_lookup_symbol }
