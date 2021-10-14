@@ -16,7 +16,7 @@
 
 open Import
 
-let outcome_global : Toploop.evaluation_outcome option ref = ref None
+let outcome_global : Topcommon.evaluation_outcome option ref = ref None
 
 (** Assemble each section using X86_emitter. Empty sections are filtered *)
 let binary_section_map ~arch section_map =
@@ -135,9 +135,8 @@ let entry_points ~phrase_name symbols =
         entry_name
 
 let jit_run entry_points =
-  let open Toploop in
   match
-    try Result (Obj.magic (Externals.run_toplevel entry_points))
+    try Topcommon.Result (Obj.magic (Externals.run_toplevel entry_points))
     with exn -> Exception exn
   with
   | Exception _ as r -> r
@@ -153,7 +152,7 @@ let get_arch () =
   | 64 -> X86_ast.X64
   | i -> failwithf "Unexpected word size: %d" i 16
 
-let jit_load_x86 ~outcome_ref asm_program _filename =
+let jit_load_x86 phrase_name ~outcome_ref asm_program _filename =
   Debug.print_ast asm_program;
   let section_map = X86_section.Map.from_program asm_program in
   let arch = get_arch () in
@@ -171,7 +170,6 @@ let jit_load_x86 ~outcome_ref asm_program _filename =
   Globals.symbols := symbols;
   let relocated_text = relocate_text ~symbols addressed_text in
   relocate_other ~symbols addressed_sections;
-  let phrase_name = Toploop.Native.phrase_name () in
   Debug.save_binary_sections ~phrase_name addressed_sections;
   Debug.save_text_section ~phrase_name relocated_text;
   load_text relocated_text;
@@ -185,17 +183,9 @@ let set_debug () =
   | Some ("true" | "1") -> Globals.debug := true
   | None | Some _ -> Globals.debug := false
 
-let with_jit_x86 f =
-  let ias = !X86_proc.internal_assembler in
-  X86_proc.register_internal_assembler
-    (jit_load_x86 ~outcome_ref:outcome_global);
-  try
-    let res = f () in
-    X86_proc.internal_assembler := ias;
-    res
-  with exn ->
-    X86_proc.internal_assembler := ias;
-    raise exn
+let with_jit_x86 f phrase_name =
+  X86_proc.with_internal_assembler
+    (jit_load_x86 phrase_name ~outcome_ref:outcome_global) f
 
 (* Copied from opttoploop.ml *)
 module Backend = struct
@@ -218,10 +208,8 @@ end
 
 let backend = (module Backend : Backend_intf.S)
 
-let jit_load_body ppf program =
+let jit_load_body ppf phrase_name program =
   let open Config in
-  let open Toploop in
-  let phrase_name = Toploop.Native.phrase_name () in
   let dll =
     if !Clflags.keep_asm_file then phrase_name ^ ext_dll
     else Filename.temp_file ("caml" ^ phrase_name) ext_dll
@@ -231,22 +219,25 @@ let jit_load_body ppf program =
     if Config.flambda then Flambda_middle_end.lambda_to_clambda
     else Closure_middle_end.lambda_to_clambda
   in
-  Asmgen.compile_implementation ~toplevel:Native.need_symbol ~backend
-    ~prefixname:filename ~middle_end ~ppf_dump:ppf program;
+  let toplevel sym =
+    Option.is_none (Dynlink.unsafe_get_global_value ~bytecode_or_asm_symbol:sym)
+  in
+  Asmgen.compile_implementation ~toplevel ~backend ~prefixname:filename
+    ~middle_end ~ppf_dump:ppf program;
   match !outcome_global with
   | None -> failwith "No evaluation outcome"
   | Some res ->
       outcome_global := None;
       res
 
-let jit_load ppf program = with_jit_x86 (fun () -> jit_load_body ppf program)
+let jit_load ppf phrase_name program =
+  with_jit_x86 (fun () -> jit_load_body ppf phrase_name program) phrase_name
 
 let jit_lookup_symbol symbol =
   match Symbols.find !Globals.symbols symbol with
-  | None -> Toploop.Native.default_lookup symbol
+  | None -> Dynlink.unsafe_get_global_value ~bytecode_or_asm_symbol:symbol
   | Some x -> Some (Address.to_obj x)
 
 let init_top () =
   set_debug ();
-  Toploop.Native.register_jit
-    { load = jit_load; lookup_symbol = jit_lookup_symbol }
+  Tophooks.register_loader ~lookup:jit_lookup_symbol ~load:jit_load
