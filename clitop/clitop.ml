@@ -50,9 +50,10 @@ let eval_script ~eval_phrase input =
 
 let run ~eval_phrase ~loop (`Keep_asm_files keep_asm_files) (`Input input) =
   Clflags.keep_asm_file := keep_asm_files;
-  match input with
+  try match input with
   | None -> loop Format.std_formatter
   | Some input -> eval_script ~eval_phrase input
+  with Compenv.Exit_with_status 0 -> ()
 
 let term ~eval_phrase ~loop =
   Cmdliner.Term.(const (run ~eval_phrase ~loop) $ keep_asm_files $ input)
