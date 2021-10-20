@@ -141,7 +141,7 @@ CAMLprim value jit_run(value symbols_addresses) {
   CAMLlocal1 (result);
   void *sym,*sym2;
 
-  void (*entrypoint)(void);
+  intnat entrypoint;
 
   //sym = optsym("__frametable");
   sym = addr_from_caml_option(Field(symbols_addresses, 0));
@@ -167,7 +167,7 @@ CAMLprim value jit_run(value symbols_addresses) {
                                 DIGEST_LATER, NULL);
 
   //entrypoint = optsym("__entry");
-  entrypoint = (void*) Nativeint_val(Field(symbols_addresses, 6));
+  entrypoint = Nativeint_val(Field(symbols_addresses, 6));
   result = caml_callback((value)(&entrypoint), 0);
 
   CAMLreturn (result);
