@@ -20,6 +20,8 @@ type t = Address.t String.Map.t
 
 let empty = String.Map.empty
 
+let of_seq = String.Map.of_seq
+
 let strict_union t t' =
   String.Map.union t t' ~f:(fun symbol_name _ _ ->
       failwithf "Symbol %s defined in several sections" symbol_name)

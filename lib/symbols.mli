@@ -21,6 +21,8 @@ type t
 
 val empty : t
 
+val of_seq : (string * Address.t) Seq.t -> t
+
 val from_binary_section : X86_emitter.buffer addressed -> t
 (** Create a mapping for all symbols in the given section. Some symbols
     that should be available globally, such as ["caml_absf_mask"] will not
