@@ -16,6 +16,10 @@
 
 open Import
 
+module Globals = Globals
+module Symbols = Symbols
+module Address = Address
+
 let outcome_global : Topcommon.evaluation_outcome option ref = ref None
 
 (** Assemble each section using X86_emitter. Empty sections are filtered *)
