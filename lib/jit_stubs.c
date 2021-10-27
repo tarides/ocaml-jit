@@ -92,7 +92,7 @@ CAMLprim value jit_mprotect_ro(value caml_addr, value caml_size) {
   void *addr;
   int size;
 
-  size = Int_val(caml_size);
+  size = Long_val(caml_size);
   addr = (intnat*) Nativeint_val(caml_addr);
 
   if (mprotect(addr, size, PROT_READ)) {
