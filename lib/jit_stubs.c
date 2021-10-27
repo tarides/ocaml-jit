@@ -143,30 +143,23 @@ CAMLprim value jit_run(value symbols_addresses) {
 
   intnat entrypoint;
 
-  //sym = optsym("__frametable");
   sym = addr_from_caml_option(Field(symbols_addresses, 0));
   if (NULL != sym) caml_register_frametable(sym);
 
-  //sym = optsym("__gc_roots");
   sym = addr_from_caml_option(Field(symbols_addresses, 1));
   if (NULL != sym) caml_register_dyn_global(sym);
 
-  //sym = optsym("__data_begin");
-  //sym2 = optsym("__data_end");
   sym = addr_from_caml_option(Field(symbols_addresses, 2));
   sym2 = addr_from_caml_option(Field(symbols_addresses, 3));
   if (NULL != sym && NULL != sym2)
     caml_page_table_add(In_static_data, sym, sym2);
 
-  //sym = optsym("__code_begin");
-  //sym2 = optsym("__code_end");
   sym = addr_from_caml_option(Field(symbols_addresses, 4));
   sym2 = addr_from_caml_option(Field(symbols_addresses, 5));
   if (NULL != sym && NULL != sym2)
     caml_register_code_fragment((char *) sym, (char *) sym2,
                                 DIGEST_LATER, NULL);
 
-  //entrypoint = optsym("__entry");
   entrypoint = Nativeint_val(Field(symbols_addresses, 6));
   result = caml_callback((value)(&entrypoint), 0);
 
