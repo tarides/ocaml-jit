@@ -35,6 +35,39 @@
 (rule
  (action
   (with-accepted-exit-codes (or 0 1 125)
+   (with-outputs-to let_underscore.byte
+    (run bytetop %{dep:let_underscore.ml})))))
+
+(rule
+ (action
+  (with-accepted-exit-codes (or 0 1 125)
+   (with-outputs-to let_underscore.nat
+    (run nattop %{dep:let_underscore.ml})))))
+
+(rule
+ (action
+  (with-accepted-exit-codes (or 0 1 125)
+   (with-outputs-to let_underscore.jit
+    (run jittop %{dep:let_underscore.ml})))))
+
+(rule
+ (alias bytetest)
+ (action
+  (diff let_underscore.expected let_underscore.byte)))
+
+(rule
+ (alias nattest)
+ (action
+  (diff let_underscore.byte let_underscore.nat)))
+
+(rule
+ (alias jittest)
+ (action
+  (diff let_underscore.nat let_underscore.jit)))
+
+(rule
+ (action
+  (with-accepted-exit-codes (or 0 1 125)
    (with-outputs-to local_exc.byte
     (run bytetop %{dep:local_exc.ml})))))
 
