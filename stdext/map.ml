@@ -17,11 +17,17 @@ end
 module Make (Key : Key) : S with type key = Key.t = struct
   include MoreLabels.Map.Make (Key)
 
-  module Bindings = struct
-    type 'a t = (Key.t * 'a) list [@@deriving show]
-  end
+  let pp_bindings pp_a fmt = function
+    | [] -> Format.fprintf fmt "[]"
+    | [ (k, a) ] -> Format.fprintf fmt "[(%a, %a)]" Key.pp k pp_a a
+    | (k, a) :: tl ->
+        Format.fprintf fmt "[ (%a, %a)@ " Key.pp k pp_a a;
+        List.iter
+          (fun (k, a) -> Format.fprintf fmt "; (%a, %a)@ " Key.pp k pp_a a)
+          tl;
+        Format.fprintf fmt "]"
 
-  let pp pp_a fmt t = Bindings.pp pp_a fmt (bindings t)
+  let pp pp_a fmt t = pp_bindings pp_a fmt (bindings t)
 
-  let show show_a t = Bindings.show show_a (bindings t)
+  let show pp_a t = Format.asprintf "%a" (pp pp_a) t
 end

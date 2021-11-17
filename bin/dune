@@ -4,7 +4,7 @@
  (package jit)
  (modes native)
  (modules jittop)
- (libraries clitop jit compiler-libs-opttoplevel)
+ (libraries clitop jit compiler-libs-either-toplevel)
  (link_flags :standard -linkall))
 
 (executable
@@ -13,7 +13,7 @@
  (package jit)
  (modes native)
  (modules nattop)
- (libraries clitop compiler-libs-opttoplevel)
+ (libraries clitop compiler-libs-either-toplevel)
  (link_flags :standard -linkall))
 
 (executable
@@ -22,5 +22,5 @@
  (package jit)
  (modes byte)
  (modules bytetop)
- (libraries clitop compiler-libs.toplevel)
+ (libraries clitop compiler-libs-either-toplevel)
  (link_flags :standard -linkall))

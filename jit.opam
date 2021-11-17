@@ -9,8 +9,7 @@ bug-reports: "https://github.com/NathanReb/ocaml-jit/issues"
 depends: [
   "dune" {>= "2.8"}
   "cmdliner"
-  "compiler-libs-opttoplevel"
-  "ppx_deriving"
+  "compiler-libs-either-toplevel"
   "odoc" {with-doc}
 ]
 build: [
@@ -30,7 +29,7 @@ build: [
 dev-repo: "git+https://github.com/NathanReb/ocaml-jit.git"
 pin-depends: [
   [
-    "compiler-libs-opttoplevel.0.1.0"
-    "git+https://github.com/NathanReb/compiler-libs-opttoplevel.git#0.1.0"
+    "compiler-libs-either-toplevel.dev"
+    "git+https://github.com/NathanReb/compiler-libs-either-toplevel.git"
   ]
 ]
