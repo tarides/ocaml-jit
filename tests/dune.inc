@@ -2,6 +2,39 @@
 (rule
  (action
   (with-accepted-exit-codes (or 0 1 125)
+   (with-outputs-to caml_apply19.byte
+    (run bytetop %{dep:caml_apply19.ml})))))
+
+(rule
+ (action
+  (with-accepted-exit-codes (or 0 1 125)
+   (with-outputs-to caml_apply19.nat
+    (run nattop %{dep:caml_apply19.ml})))))
+
+(rule
+ (action
+  (with-accepted-exit-codes (or 0 1 125)
+   (with-outputs-to caml_apply19.jit
+    (run jittop %{dep:caml_apply19.ml})))))
+
+(rule
+ (alias bytetest)
+ (action
+  (diff caml_apply19.expected caml_apply19.byte)))
+
+(rule
+ (alias nattest)
+ (action
+  (diff caml_apply19.byte caml_apply19.nat)))
+
+(rule
+ (alias jittest)
+ (action
+  (diff caml_apply19.nat caml_apply19.jit)))
+
+(rule
+ (action
+  (with-accepted-exit-codes (or 0 1 125)
    (with-outputs-to hello_world.byte
     (run bytetop %{dep:hello_world.ml})))))
 
