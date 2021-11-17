@@ -4,24 +4,23 @@ This library provides a way to execute the native toplevel on x86 platforms with
 running external processes such as `as` and `ln` as the regular native toplevel does.
 Everything is handled in process which results in much better performances
 
-At the moment, it builds on top of 4.14 and requires a few simple modification to the
-compiler which can be found [here](https://github.com/NathanReb/ocaml/tree/jit-hooks).
+At the moment, it builds on top of 4.14 which is not released yet so you'll have
+to use the `4.14.0+trunk` compiler variant in opam.
 
 If you just want to give it a quick spin you can run:
 ```
 git clone git@github.com:NathanReb/ocaml-jit.git
 cd ocaml-jit
 git checkout 4-14
-opam compiler create --switch=. NathanReb:jit-hooks
+opam switch create ./ 4.14.0+trunk
 opam install --deps-only ./
 dune exec jittop
 ```
 
-To use it in your project you will need to use the above mentioned compiler fork,
-you can create a fresh local switch on top of it using the `opam-compiler` plugin as
-follows:
+To use it in your project you will need to use the above mentioned compiler variant.
+You can create the right, fresh local switch by running:
 ```
-opam compiler create --switch=. NathanReb:jit-hooks
+opam switch create ./ 4.14.0+trunk
 ```
 
 To make the native toplevel accessible by dune and ocamlfind you will also need to use
