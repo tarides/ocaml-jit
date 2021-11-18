@@ -60,7 +60,5 @@ module Map = struct
         let current_section = name s_l s_opt s_l' in
         let current_instrs = [] in
         aux String.Map.empty current_section current_instrs tl
-    | _line :: _ ->
-        failwithf
-          "Invalid program, should start with section"
+    | _line :: _ -> failwithf "Invalid program, should start with section"
 end

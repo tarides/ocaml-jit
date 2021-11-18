@@ -187,7 +187,8 @@ let set_debug () =
 
 let with_jit_x86 f phrase_name =
   X86_proc.with_internal_assembler
-    (jit_load_x86 phrase_name ~outcome_ref:outcome_global) f
+    (jit_load_x86 phrase_name ~outcome_ref:outcome_global)
+    f
 
 (* Copied from opttoploop.ml *)
 module Backend = struct
