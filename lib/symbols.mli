@@ -26,9 +26,20 @@ val from_binary_section : X86_emitter.buffer addressed -> t
     that should be available globally, such as ["caml_absf_mask"] will not
     be ignored so that we always use the global ones. *)
 
-val union : t -> t -> t
+val strict_union : t -> t -> t
 (** Returns the union of two symbols mappings. Raises an exception if there
-    are conflicts *)
+    are conflicts.
+    Should be used for merging symbols mappings for different sections
+    of a single compilation unit, e.g. of a single toplevel phrase. *)
+
+val aggregate : current:t -> new_symbols:t -> t
+(** [aggregate ~current ~new_symbols] returns the union of [current] and
+    [new_symbols].
+    Raises an exception if there are conflicts except for ["caml_apply*"] and
+    ["caml_curry*"] which are expected to be generated several times in a
+    toplevel session.
+    When there is a conflict for those symbols, the returned mapping will
+    contain the symbol from [new_symbols]. *)
 
 val find : t -> string -> Address.t option
 (** Lookup a symbol's address in the given symbol map. If it is missing from the map

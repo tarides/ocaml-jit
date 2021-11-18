@@ -64,7 +64,7 @@ let local_symbol_map binary_section_map =
   String.Map.fold binary_section_map ~init:Symbols.empty
     ~f:(fun ~key:_ ~data all_symbols ->
       let section_symbols = Symbols.from_binary_section data in
-      Symbols.union section_symbols all_symbols)
+      Symbols.strict_union section_symbols all_symbols)
 
 let relocate_text ~symbols text_section =
   match Jit_text_section.relocate ~symbols text_section with
@@ -164,9 +164,11 @@ let jit_load_x86 phrase_name ~outcome_ref asm_program _filename =
   let other_sections_symbols = local_symbol_map addressed_sections in
   let text_section_symbols = Jit_text_section.symbols addressed_text in
   let local_symbols =
-    Symbols.union other_sections_symbols text_section_symbols
+    Symbols.strict_union other_sections_symbols text_section_symbols
   in
-  let symbols = Symbols.union !Globals.symbols local_symbols in
+  let symbols =
+    Symbols.aggregate ~current:!Globals.symbols ~new_symbols:local_symbols
+  in
   Globals.symbols := symbols;
   let relocated_text = relocate_text ~symbols addressed_text in
   relocate_other ~symbols addressed_sections;

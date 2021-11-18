@@ -20,9 +20,22 @@ type t = Address.t String.Map.t
 
 let empty = String.Map.empty
 
-let union t t' =
+let strict_union t t' =
   String.Map.union t t' ~f:(fun symbol_name _ _ ->
       failwithf "Symbol %s defined in several sections" symbol_name)
+
+(* Identifies whether a symbol is a generic OCaml function
+   that is generated on the fly for a phrase when required.
+   Those symbols can appear several time in a toplevel session
+   if the right conditions are met. *)
+let is_gen_fun symbol_name =
+  String.starts_with ~prefix:"caml_apply" symbol_name
+  || String.starts_with ~prefix:"caml_curry" symbol_name
+
+let aggregate ~current ~new_symbols =
+  String.Map.union current new_symbols ~f:(fun symbol_name _old new_ ->
+      if is_gen_fun symbol_name then Some new_
+      else failwithf "Multiple occurences of the symbol %s" symbol_name)
 
 let from_binary_section { address; value = binary_section } =
   let symbol_map = X86_emitter.labels binary_section in
