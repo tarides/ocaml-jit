@@ -20,8 +20,6 @@ module Globals = Globals
 module Symbols = Symbols
 module Address = Address
 
-let outcome_global : Topcommon.evaluation_outcome option ref = ref None
-
 (** Assemble each section using X86_emitter. Empty sections are filtered *)
 let binary_section_map ~arch section_map =
   String.Map.filter_map section_map ~f:(fun name instructions ->
@@ -184,9 +182,9 @@ let jit_load_x86 phrase_name ~outcome_ref asm_program _filename =
   let result = jit_run entry_points in
   outcome_ref := Some result
 
-let with_jit_x86 f phrase_name =
+let with_jit_x86 outcome_ref f phrase_name =
   X86_proc.with_internal_assembler
-    (jit_load_x86 phrase_name ~outcome_ref:outcome_global)
+    (jit_load_x86 phrase_name ~outcome_ref)
     f
 
 (* Copied from opttoploop.ml *)
@@ -210,7 +208,7 @@ end
 
 let backend = (module Backend : Backend_intf.S)
 
-let jit_load_body ppf phrase_name program =
+let jit_load_body outcome_ref ppf phrase_name program =
   let open Config in
   let dll =
     if !Clflags.keep_asm_file then phrase_name ^ ext_dll
@@ -226,14 +224,14 @@ let jit_load_body ppf phrase_name program =
   in
   Asmgen.compile_implementation ~toplevel ~backend ~prefixname:filename
     ~middle_end ~ppf_dump:ppf program;
-  match !outcome_global with
+  match !outcome_ref with
   | None -> failwith "No evaluation outcome"
   | Some res ->
-      outcome_global := None;
       res
 
 let jit_load ppf phrase_name program =
-  with_jit_x86 (fun () -> jit_load_body ppf phrase_name program) phrase_name
+  let outcome_ref = ref None in
+  with_jit_x86 outcome_ref (fun () -> jit_load_body outcome_ref ppf phrase_name program) phrase_name
 
 let jit_lookup_symbol symbol =
   match Symbols.find !Globals.symbols symbol with
