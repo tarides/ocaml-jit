@@ -154,7 +154,7 @@ let get_arch () =
   match Sys.word_size with
   | 32 -> X86_ast.X86
   | 64 -> X86_ast.X64
-  | i -> failwithf "Unexpected word size: %d" i 16
+  | i -> failwithf "Unexpected word size: %d" i
 
 let jit_load_x86 phrase_name ~outcome_ref asm_program _filename =
   Debug.print_ast asm_program;
@@ -183,11 +183,6 @@ let jit_load_x86 phrase_name ~outcome_ref asm_program _filename =
   let entry_points = entry_points ~phrase_name symbols in
   let result = jit_run entry_points in
   outcome_ref := Some result
-
-let set_debug () =
-  match Sys.getenv_opt "OCAML_JIT_DEBUG" with
-  | Some ("true" | "1") -> Globals.debug := true
-  | None | Some _ -> Globals.debug := false
 
 let with_jit_x86 f phrase_name =
   X86_proc.with_internal_assembler
@@ -244,7 +239,3 @@ let jit_lookup_symbol symbol =
   match Symbols.find !Globals.symbols symbol with
   | None -> Dynlink.unsafe_get_global_value ~bytecode_or_asm_symbol:symbol
   | Some x -> Some (Address.to_obj x)
-
-let init_top () =
-  set_debug ();
-  Tophooks.register_loader ~lookup:jit_lookup_symbol ~load:jit_load

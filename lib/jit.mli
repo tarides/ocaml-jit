@@ -14,11 +14,12 @@
  *
  *)
 
-val init_top : unit -> unit
-
 module Globals = Globals
 module Symbols = Symbols
 module Address = Address
 
-(** Register the JIT so that the native toplevel uses it instead of
-    the regular toolchain *)
+(** Callback to [Tophooks.register_loader] to executabe a program at the toplevel  *)
+val jit_load : Format.formatter -> string -> Lambda.program -> Topcommon.evaluation_outcome
+
+(** Callback to [Tophooks.register_loader] to find a global symbol by name *)
+val jit_lookup_symbol : string -> Obj.t option
