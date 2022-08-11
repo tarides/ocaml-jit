@@ -5,8 +5,8 @@
 
 (license ISC)
 (source (github NathanReb/ocaml-jit))
-(maintainers "Nathan Rebours <nathan.p.rebours@gmail.com")
-(authors "Nathan Rebours <nathan.p.rebours@gmail.com")
+(maintainers "Nathan Rebours <nathan.p.rebours@gmail.com>")
+(authors "Nathan Rebours <nathan.p.rebours@gmail.com>")
 
 (package
  (name jit)
