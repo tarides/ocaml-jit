@@ -61,10 +61,11 @@ let term ~eval_phrase ~loop =
 
 let info ~name =
   let doc = "Run the given OCaml toplevel phrase" in
-  Cmdliner.Term.info ~doc name
+  Cmdliner.Cmd.info ~doc name
 
 let main ~name ~eval_phrase ~loop () =
   let term = term ~eval_phrase ~loop in
   let info = info ~name in
-  let ret = Cmdliner.Term.eval (term, info) in
-  Cmdliner.Term.exit ret
+  let cmd = Cmdliner.Cmd.v info term in
+  let ret = Cmdliner.Cmd.eval cmd in
+  Stdlib.exit ret
