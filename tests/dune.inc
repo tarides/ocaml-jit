@@ -101,39 +101,6 @@
 (rule
  (action
   (with-accepted-exit-codes (or 0 1 125)
-   (with-outputs-to local_exc.byte
-    (run bytetop %{dep:local_exc.ml})))))
-
-(rule
- (action
-  (with-accepted-exit-codes (or 0 1 125)
-   (with-outputs-to local_exc.nat
-    (run nattop %{dep:local_exc.ml})))))
-
-(rule
- (action
-  (with-accepted-exit-codes (or 0 1 125)
-   (with-outputs-to local_exc.jit
-    (run jittop %{dep:local_exc.ml})))))
-
-(rule
- (alias bytetest)
- (action
-  (diff local_exc.expected local_exc.byte)))
-
-(rule
- (alias nattest)
- (action
-  (diff local_exc.byte local_exc.nat)))
-
-(rule
- (alias jittest)
- (action
-  (diff local_exc.nat local_exc.jit)))
-
-(rule
- (action
-  (with-accepted-exit-codes (or 0 1 125)
    (with-outputs-to one_plus_one.byte
     (run bytetop %{dep:one_plus_one.ml})))))
 
