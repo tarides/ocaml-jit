@@ -31,3 +31,10 @@ You can pin it using:
 ```sh
 opam pin add compiler-libs-opttoplevel.0.1.0 git+https://github.com/NathanReb/compiler-libs-opttoplevel.git#0.1.0
 ```
+
+## SELinux woes
+
+In case you see the JIT fail with error messages like `mprotect failed with
+code 13 for section .text`, this is due to SELinux being enforced. The solution
+is being worked on but for now you can disable the enforce mode by switching to
+permissive mode by calling `setenforce 0` as root.
