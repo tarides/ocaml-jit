@@ -11,7 +11,7 @@
 (package
  (name jit)
  (depends
-   (ocaml (>= 4.14.0))
+   (ocaml (and (>= 4.14.0) (< 5.0)))
    cmdliner
    compiler-libs-either-toplevel)
  (synopsis "Just In Time compiler for OCaml native toplevel"))

@@ -798,11 +798,8 @@ let emit_MOV b dst src =
       assert false
 
 type simple_encoding = {
-  rm8_r8 : int list;
   rm64_r64 : int list;
-  r8_rm8 : int list;
   r64_rm64 : int list;
-  al_imm8 : int list;
   rax_imm32 : int list;
   rm8_imm8 : int list;
   rm64_imm32 : int list;
@@ -867,11 +864,8 @@ let emit_simple_encoding enc b dst src =
 let emit_simple_encoding base reg =
   emit_simple_encoding
     {
-      rm8_r8 = [ base ];
       rm64_r64 = [ base + 1 ];
-      r8_rm8 = [ base + 2 ];
       r64_rm64 = [ base + 3 ];
-      al_imm8 = [ base + 4 ];
       rax_imm32 = [ base + 5 ];
       rm8_imm8 = [ 0x80 ];
       rm64_imm32 = [ 0x81 ];
