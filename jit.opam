@@ -31,6 +31,6 @@ dev-repo: "git+https://github.com/NathanReb/ocaml-jit.git"
 pin-depends: [
   [
     "compiler-libs-either-toplevel.dev"
-    "git+https://github.com/NathanReb/compiler-libs-either-toplevel.git"
+    "git+https://github.com/NathanReb/compiler-libs-either-toplevel.git#main"
   ]
 ]
