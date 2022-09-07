@@ -15,7 +15,6 @@
  *)
 
 external memalign : int -> (Address.t, string) result = "jit_memalign"
-
 external load_section : Address.t -> string -> int -> unit = "jit_load_section"
 
 external mprotect_ro : Address.t -> int -> (unit, int) result
@@ -28,5 +27,4 @@ external run_toplevel : Jit_unit.Entry_points.t -> Toplevel_res.t
   = "jit_run_toplevel"
 
 external get_page_size : unit -> int = "jit_get_page_size"
-
 external dlsym : string -> Address.t option = "jit_dlsym"

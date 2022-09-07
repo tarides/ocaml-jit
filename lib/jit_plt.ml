@@ -17,7 +17,6 @@
 open Import
 
 let jmp_r10_instr = "\x41\xff\xe2"
-
 let movq_r10_opcode = "\x49\xba"
 
 include Bin_table.Make (struct

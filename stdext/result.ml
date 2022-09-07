@@ -2,7 +2,6 @@ include Stdlib.Result
 
 module Op = struct
   let ( let* ) r f = match r with Error e -> Error e | Ok x -> f x
-
   let ( let+ ) r f = match r with Error e -> Error e | Ok x -> Ok (f x)
 end
 

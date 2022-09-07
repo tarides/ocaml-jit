@@ -17,7 +17,6 @@
 open Import
 
 type empty
-
 type filled
 
 module type S = sig
@@ -45,11 +44,8 @@ end
 
 module type IN = sig
   val name : string
-
   val entry_size : int
-
   val entry_from_relocation : Relocation.t -> string option
-
   val write_entry : Buffer.t -> Address.t -> unit
 end
 
