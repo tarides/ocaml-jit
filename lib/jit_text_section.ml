@@ -17,7 +17,6 @@
 open Import
 
 type need_reloc = Bin_table.empty
-
 type relocated = Bin_table.filled
 
 let name = ".text"

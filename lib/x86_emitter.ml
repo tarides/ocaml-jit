@@ -126,7 +126,6 @@ let get_symbol b s =
     sy
 
 let buf_int8 b i = Buffer.add_char b.buf (char_of_int (i land 0xff))
-
 let buf_int8L b iL = buf_int8 b (Int64.to_int iL)
 
 let buf_int16L b iL =
@@ -165,11 +164,8 @@ let str_int64L s pos v =
    [OPCODE] + [MODRM] + [SIB] + [IMM32] *)
 
 let local_relocs = ref []
-
 let local_labels = ref String.Map.empty
-
 let forced_long_jumps = ref IntSet.empty
-
 let instr_size = ref 4
 
 let new_buffer sec =
@@ -277,7 +273,6 @@ let eval_const b current_pos cst =
     raise e
 
 let is_imm32L n = n < 0x8000_0000L && n >= -0x8000_0000L
-
 let is_imm8L x = x < 128L && x >= -128L
 
 let rd_of_regf regf =
@@ -338,29 +333,17 @@ let cd_of_condition condition =
 *)
 
 let no_rex = 0
-
 let rex = 0b01000000
-
 let rexr = 0b00000100 (* extension of r *)
-
 let rexr_reg reg = if reg > 7 then rexr else 0
-
 let rexw = rex lor 0b00001000
-
 let rexx = 0b00000010
-
 let rexx_index reg = if reg > 7 then rexx else 0
-
 let rexb = 0b00000001
-
 let rexb_opcode reg = if reg > 7 then rexb else 0
-
 let rexb_rm reg = if reg > 7 then rexb else 0
-
 let rexb_base reg = if reg > 7 then rexb else 0
-
 let reg7 reg = reg land 0x07
-
 let rex_of_reg8 = function Reg8L (RSP | RBP | RSI | RDI) -> rex | _ -> 0
 
 (* TODO: we should check conformance with page 3-2, vol 2A of Intel Spec ? *)
@@ -874,15 +857,10 @@ let emit_simple_encoding base reg =
     }
 
 let emit_ADD = emit_simple_encoding 0x00 0
-
 let emit_OR = emit_simple_encoding 0x08 1
-
 let emit_AND = emit_simple_encoding 0x20 4
-
 let emit_SUB = emit_simple_encoding 0x28 5
-
 let emit_XOR = emit_simple_encoding 0x30 6
-
 let emit_CMP = emit_simple_encoding 0x38 7
 
 let emit_test b dst src =
@@ -958,9 +936,7 @@ let emit_shift reg b dst src =
       assert false
 
 let emit_SAL b dst src = emit_shift 4 b dst src
-
 let emit_SHR b dst src = emit_shift 5 b dst src
-
 let emit_SAR b dst src = emit_shift 7 b dst src
 
 let record_local_reloc b local_reloc =
@@ -1057,7 +1033,8 @@ let emit_j b loc condition dst =
   match dst with
   | Sym symbol ->
       let opcode_offset = cd_of_condition condition in
-      emit_reloc_jump [ 0x70 + opcode_offset ]
+      emit_reloc_jump
+        [ 0x70 + opcode_offset ]
         [ 0x0F; 0x80 + opcode_offset ]
         b loc symbol
   | _ -> assert false
@@ -1237,17 +1214,13 @@ let emit_FXXX reg b rm =
   | _ -> assert false
 
 let emit_FADD = emit_FXXX 0
-
 let emit_FMUL = emit_FXXX 1
 
 (* let emit_FCOM = emit_FXXX 2 *)
 (* let emit_FCOMP = emit_FXXX 3 *)
 let emit_FSUB = emit_FXXX 4
-
 let emit_FSUBR = emit_FXXX 5
-
 let emit_FDIV = emit_FXXX 6
-
 let emit_FDIVR = emit_FXXX 7
 
 let emit_FILD b = function
@@ -1278,15 +1251,10 @@ let emit_FXXXP opcode b a1 a2 =
   | _ -> assert false
 
 let emit_FADDP b = emit_FXXXP 0xC0 b
-
 let emit_FMULP b = emit_FXXXP 0xC8 b
-
 let emit_FSUBRP b = emit_FXXXP 0xE0 b
-
 let emit_FSUBP b = emit_FXXXP 0xE8 b
-
 let emit_FDIVRP b = emit_FXXXP 0xF0 b
-
 let emit_FDIVP b = emit_FXXXP 0xF8 b
 
 let emit_XCHG b src dst =
@@ -1574,7 +1542,6 @@ let assemble_section arch section =
 *)
 
 let size b = Buffer.length b.buf
-
 let add_patch ~offset ~size ~data t = add_patch t offset size data
 
 let contents b =
@@ -1589,5 +1556,4 @@ let contents b =
   Bytes.to_string buf
 
 let relocations b = b.relocations
-
 let labels b = b.labels

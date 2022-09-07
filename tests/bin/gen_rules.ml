@@ -1,7 +1,5 @@
 let byte = "byte"
-
 let nat = "nat"
-
 let jit = "jit"
 
 let pr_output_rule ~mode basename =

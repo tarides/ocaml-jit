@@ -17,9 +17,7 @@
 open Import
 
 type need_reloc
-
 type relocated
-
 type _ t
 
 val name : string

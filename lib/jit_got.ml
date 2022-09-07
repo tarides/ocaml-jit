@@ -18,7 +18,6 @@ open! Import
 
 include Bin_table.Make (struct
   let name = "GOT"
-
   let entry_size = Address.size
 
   let entry_from_relocation reloc =

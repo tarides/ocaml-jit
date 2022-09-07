@@ -18,11 +18,8 @@
 type t = nativeint
 
 let size = Nativeint.size / 8
-
 let placeholder = Nativeint.zero
-
 let add_int t int = Nativeint.(add t (of_int int))
-
 let add_int64 t int64 = Nativeint.(add t (Int64.to_nativeint int64))
 
 let emit buf t =
@@ -37,7 +34,6 @@ let emit_string t =
   Buffer.contents buf
 
 let to_int64 t = Int64.of_nativeint t
-
 let pp fmt t = Format.fprintf fmt "%nx" t
 
 external to_obj : t -> Obj.t = "jit_addr_to_obj"

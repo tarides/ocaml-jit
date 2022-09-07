@@ -16,7 +16,6 @@ open Import
 open X86_ast
 
 type section = { sec_name : string; mutable sec_instrs : asm_line array }
-
 type data_size = B8 | B16 | B32 | B64 [@@deriving eq, ord, show]
 
 type symbol = {
@@ -45,15 +44,9 @@ end
 type buffer
 
 val size : buffer -> int
-
 val relocations : buffer -> Relocation.t list
-
 val assemble_section : arch -> section -> buffer
-
 val get_symbol : buffer -> String.Map.key -> symbol
-
 val contents : buffer -> string
-
 val add_patch : offset:int -> size:data_size -> data:int64 -> buffer -> unit
-
 val labels : buffer -> symbol String.Map.t
