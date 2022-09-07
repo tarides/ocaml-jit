@@ -24,3 +24,9 @@
  (modules bytetop)
  (libraries clitop compiler-libs-either-toplevel)
  (link_flags :standard -linkall))
+
+(executable
+ (name can_jit)
+ (modes native)
+ (modules can_jit)
+ (libraries jit))

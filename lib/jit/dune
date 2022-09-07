@@ -1,0 +1,10 @@
+(library
+ (name jit_jit)
+ (public_name jit.jit)
+ (libraries compiler-libs compiler-libs-either-toplevel stdext)
+ (enabled_if
+  (= %{architecture} "amd64"))
+ (modes native)
+ (foreign_stubs
+  (language c)
+  (names jit_stubs)))
