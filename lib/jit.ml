@@ -239,3 +239,5 @@ let jit_lookup_symbol symbol =
 let init_top () =
   set_debug ();
   Tophooks.register_loader ~lookup:jit_lookup_symbol ~load:jit_load
+
+let can_enable_jit = true

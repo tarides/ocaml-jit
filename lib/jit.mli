@@ -16,4 +16,11 @@
 
 val init_top : unit -> unit
 (** Register the JIT so that the native toplevel uses it instead of
-    the regular toolchain *)
+    the regular toolchain.
+
+    Will do nothing if the JIT cannot be enabled, if e.g. the mode is bytecode
+    or the architecture is not x86. *)
+
+val can_enable_jit : bool
+(** Signifies whether the JIT can be enabled based on the current compilation
+    mode and architecture. *)
