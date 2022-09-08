@@ -1,6 +1,12 @@
 (library
  (public_name jit)
- (libraries compiler-libs compiler-libs-either-toplevel stdext)
- (foreign_stubs
-  (language c)
-  (names jit_stubs)))
+ (libraries
+  compiler-libs
+  compiler-libs-either-toplevel
+  stdext
+  (select
+   jit.ml
+   from
+   (!jit_jit -> jit.dummy.ml)
+   (jit_jit -> jit.jit.ml)))
+ (modes byte native))
