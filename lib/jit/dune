@@ -3,7 +3,9 @@
  (public_name jit.jit)
  (libraries compiler-libs compiler-libs-either-toplevel stdext)
  (enabled_if
-  (= %{architecture} "amd64"))
+  (or
+   (= %{architecture} "amd64")
+   (= %{architecture} "i386")))
  (modes native)
  (foreign_stubs
   (language c)
