@@ -16,7 +16,9 @@
 
 open Import
 
-let outcome_global : Topcommon.evaluation_outcome option ref = ref None
+module Globals = Globals
+module Symbols = Symbols
+module Address = Address
 
 (** Assemble each section using X86_emitter. Empty sections are filtered *)
 let binary_section_map ~arch section_map =
@@ -150,7 +152,7 @@ let get_arch () =
   match Sys.word_size with
   | 32 -> X86_ast.X86
   | 64 -> X86_ast.X64
-  | i -> failwithf "Unexpected word size: %d" i 16
+  | i -> failwithf "Unexpected word size: %d" i
 
 let jit_load_x86 phrase_name ~outcome_ref asm_program _filename =
   Debug.print_ast asm_program;
@@ -180,14 +182,9 @@ let jit_load_x86 phrase_name ~outcome_ref asm_program _filename =
   let result = jit_run entry_points in
   outcome_ref := Some result
 
-let set_debug () =
-  match Sys.getenv_opt "OCAML_JIT_DEBUG" with
-  | Some ("true" | "1") -> Globals.debug := true
-  | None | Some _ -> Globals.debug := false
-
-let with_jit_x86 f phrase_name =
+let with_jit_x86 outcome_ref f phrase_name =
   X86_proc.with_internal_assembler
-    (jit_load_x86 phrase_name ~outcome_ref:outcome_global)
+    (jit_load_x86 phrase_name ~outcome_ref)
     f
 
 (* Copied from opttoploop.ml *)
@@ -206,7 +203,7 @@ end
 
 let backend = (module Backend : Backend_intf.S)
 
-let jit_load_body ppf phrase_name program =
+let jit_load_body outcome_ref ppf phrase_name program =
   let open Config in
   let dll =
     if !Clflags.keep_asm_file then phrase_name ^ ext_dll
@@ -222,20 +219,16 @@ let jit_load_body ppf phrase_name program =
   in
   Asmgen.compile_implementation ~toplevel ~backend ~prefixname:filename
     ~middle_end ~ppf_dump:ppf program;
-  match !outcome_global with
+  match !outcome_ref with
   | None -> failwith "No evaluation outcome"
   | Some res ->
-      outcome_global := None;
       res
 
 let jit_load ppf phrase_name program =
-  with_jit_x86 (fun () -> jit_load_body ppf phrase_name program) phrase_name
+  let outcome_ref = ref None in
+  with_jit_x86 outcome_ref (fun () -> jit_load_body outcome_ref ppf phrase_name program) phrase_name
 
 let jit_lookup_symbol symbol =
   match Symbols.find !Globals.symbols symbol with
   | None -> Dynlink.unsafe_get_global_value ~bytecode_or_asm_symbol:symbol
   | Some x -> Some (Address.to_obj x)
-
-let init_top () =
-  set_debug ();
-  Tophooks.register_loader ~lookup:jit_lookup_symbol ~load:jit_load

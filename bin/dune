@@ -24,3 +24,12 @@
  (modules bytetop)
  (libraries clitop compiler-libs-either-toplevel)
  (link_flags :standard -linkall))
+
+(executable
+ (name eval)
+ (public_name eval)
+ (package jit)
+ (modes native)
+ (modules eval)
+ (libraries jit)
+ (link_flags :standard -linkall))
