@@ -135,24 +135,23 @@ static void *addr_from_caml_option(value option)
 CAMLprim value jit_run(value symbols_addresses) {
   CAMLparam1 (symbols_addresses);
   CAMLlocal1 (result);
-  void *sym,*sym2;
 
-  intnat entrypoint;
+  intnat entry;
 
-  sym = addr_from_caml_option(Field(symbols_addresses, 0));
-  if (NULL != sym) caml_register_frametable(sym);
+  void* frame_table = addr_from_caml_option(Field(symbols_addresses, 0));
+  if (NULL != frame_table) caml_register_frametable(frame_table);
 
-  sym = addr_from_caml_option(Field(symbols_addresses, 1));
-  if (NULL != sym) caml_register_dyn_global(sym);
+  void* gc_roots = addr_from_caml_option(Field(symbols_addresses, 1));
+  if (NULL != gc_roots) caml_register_dyn_global(gc_roots);
 
-  sym = addr_from_caml_option(Field(symbols_addresses, 2));
-  sym2 = addr_from_caml_option(Field(symbols_addresses, 3));
-  if (NULL != sym && NULL != sym2)
-    caml_register_code_fragment((char *) sym, (char *) sym2,
+  void* code_begin = addr_from_caml_option(Field(symbols_addresses, 2));
+  void* code_end = addr_from_caml_option(Field(symbols_addresses, 3));
+  if (NULL != code_begin && NULL != code_end && code_begin != code_end)
+    caml_register_code_fragment((char *) code_begin, (char *) code_end,
                                 DIGEST_LATER, NULL);
 
-  entrypoint = Nativeint_val(Field(symbols_addresses, 4));
-  result = caml_callback((value)(&entrypoint), 0);
+  entry = Nativeint_val(Field(symbols_addresses, 4));
+  result = caml_callback((value)(&entry), 0);
 
   CAMLreturn (result);
 }
