@@ -17,17 +17,13 @@
 #define CAML_INTERNALS
 
 #include "caml/mlvalues.h"
-#include "caml/memory.h"
-#include "caml/stack.h"
+#include "caml/frame_descriptors.h"
+#include "caml/globroots.h"
 #include "caml/callback.h"
 #include "caml/alloc.h"
 #include "caml/osdeps.h"
 #include "caml/codefrag.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/mman.h>
 #include <unistd.h>
 
 CAMLprim value jit_get_page_size(value unit) {
@@ -148,11 +144,6 @@ CAMLprim value jit_run(value symbols_addresses) {
 
   sym = addr_from_caml_option(Field(symbols_addresses, 1));
   if (NULL != sym) caml_register_dyn_global(sym);
-
-  sym = addr_from_caml_option(Field(symbols_addresses, 2));
-  sym2 = addr_from_caml_option(Field(symbols_addresses, 3));
-  if (NULL != sym && NULL != sym2)
-    caml_page_table_add(In_static_data, sym, sym2);
 
   sym = addr_from_caml_option(Field(symbols_addresses, 4));
   sym2 = addr_from_caml_option(Field(symbols_addresses, 5));
