@@ -119,13 +119,7 @@ let entry_points ~phrase_name symbols =
   match Symbols.find symbols entry_name with
   | Some entry ->
       let open Jit_unit.Entry_points in
-      {
-        frametable;
-        gc_roots;
-        code_begin;
-        code_end;
-        entry;
-      }
+      { frametable; gc_roots; code_begin; code_end; entry }
   | None ->
       failwithf "Toplevel phrase entry point symbol %s is not defined"
         entry_name
