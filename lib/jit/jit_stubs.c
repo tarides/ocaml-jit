@@ -145,13 +145,13 @@ CAMLprim value jit_run(value symbols_addresses) {
   sym = addr_from_caml_option(Field(symbols_addresses, 1));
   if (NULL != sym) caml_register_dyn_global(sym);
 
-  sym = addr_from_caml_option(Field(symbols_addresses, 4));
-  sym2 = addr_from_caml_option(Field(symbols_addresses, 5));
+  sym = addr_from_caml_option(Field(symbols_addresses, 2));
+  sym2 = addr_from_caml_option(Field(symbols_addresses, 3));
   if (NULL != sym && NULL != sym2)
     caml_register_code_fragment((char *) sym, (char *) sym2,
                                 DIGEST_LATER, NULL);
 
-  entrypoint = Nativeint_val(Field(symbols_addresses, 6));
+  entrypoint = Nativeint_val(Field(symbols_addresses, 4));
   result = caml_callback((value)(&entrypoint), 0);
 
   CAMLreturn (result);

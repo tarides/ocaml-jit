@@ -113,8 +113,6 @@ let entry_points ~phrase_name symbols =
   let find_symbol name = Symbols.find symbols (symbol_name name) in
   let frametable = find_symbol "frametable" in
   let gc_roots = find_symbol "gc_roots" in
-  let data_begin = find_symbol "data_begin" in
-  let data_end = find_symbol "data_end" in
   let code_begin = find_symbol "code_begin" in
   let code_end = find_symbol "code_end" in
   let entry_name = symbol_name "entry" in
@@ -124,8 +122,6 @@ let entry_points ~phrase_name symbols =
       {
         frametable;
         gc_roots;
-        data_begin;
-        data_end;
         code_begin;
         code_end;
         entry;
