@@ -207,12 +207,10 @@ end
 let backend = (module Backend : Backend_intf.S)
 
 let jit_load_body ppf phrase_name program =
-  let open Config in
-  let dll =
-    if !Clflags.keep_asm_file then phrase_name ^ ext_dll
-    else Filename.temp_file ("caml" ^ phrase_name) ext_dll
+  let prefixname =
+    if !Clflags.keep_asm_file then phrase_name
+    else Filename.concat (Filename.get_temp_dir_name ()) ("caml" ^ phrase_name)
   in
-  let filename = Filename.chop_extension dll in
   let middle_end =
     if Config.flambda then Flambda_middle_end.lambda_to_clambda
     else Closure_middle_end.lambda_to_clambda
@@ -220,7 +218,7 @@ let jit_load_body ppf phrase_name program =
   let toplevel sym =
     Option.is_none (Dynlink.unsafe_get_global_value ~bytecode_or_asm_symbol:sym)
   in
-  Asmgen.compile_implementation ~toplevel ~backend ~prefixname:filename
+  Asmgen.compile_implementation ~toplevel ~backend ~prefixname
     ~middle_end ~ppf_dump:ppf program;
   match !outcome_global with
   | None -> failwith "No evaluation outcome"
