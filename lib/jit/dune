@@ -9,4 +9,5 @@
  (modes native)
  (foreign_stubs
   (language c)
-  (names jit_stubs)))
+  (names jit_stubs)
+  (flags :standard -DNATIVE_CODE)))

@@ -8,7 +8,7 @@ homepage: "https://github.com/NathanReb/ocaml-jit"
 bug-reports: "https://github.com/NathanReb/ocaml-jit/issues"
 depends: [
   "dune" {>= "2.8"}
-  "ocaml" {>= "4.14.0" & < "5.0"}
+  "ocaml" {>= "5.0" & < "5.1"}
   "cmdliner"
   "compiler-libs-either-toplevel"
   "odoc" {with-doc}
